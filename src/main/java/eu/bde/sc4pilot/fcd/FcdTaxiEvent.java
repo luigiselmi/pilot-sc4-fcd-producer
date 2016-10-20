@@ -10,23 +10,47 @@ import org.joda.time.format.DateTimeFormatter;
 public class FcdTaxiEvent {
 	
 	private static transient DateTimeFormatter timeFormatter =
-			DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss").withLocale(Locale.US).withZoneUTC();
+			DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss").withLocale(Locale.ENGLISH).withZoneUTC();
 	
-	private int deviceId = -1;
-	private DateTime timestamp;
-	private double lon = 0.0;
-	private double lat = 0.0;
-	private double altitude = 0.0;
-	private int speed = 0;
-	private double orientation = 0.0;
-	private int transfer = 0;
+	public int deviceId = -1;
+	public DateTime timestamp;
+	public double lon = 0.0;
+	public double lat = 0.0;
+	public double altitude = 0.0;
+	public int speed = 0;
+	public double orientation = 0.0;
+	public int transfer = 0;
 	
+	public FcdTaxiEvent(int deviceId, 
+			            DateTime timestamp, 
+			            double lon, 
+			            double lat, 
+			            double altitude, 
+			            int speed, 
+			            double orientation, 
+			            int transfer) {
+		this.deviceId = deviceId;
+		this.timestamp = timestamp;
+		this.lon = lon;
+		this.lat = lat;
+		this.altitude = altitude;
+		this.speed = speed;
+		this.orientation = orientation;
+		this.transfer = transfer;
+	}
 
-	FcdTaxiEvent() {}
+	public FcdTaxiEvent() {}
 	
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append("test");
+		sb.append(deviceId).append(",");
+		sb.append(timestamp).append(",");
+		sb.append(lon).append(",");
+		sb.append(lat).append(",");
+		sb.append(altitude).append(",");
+		sb.append(speed).append(",");
+		sb.append(orientation).append(",");
+		sb.append(transfer);
 
 		return sb.toString();
 	}
@@ -55,6 +79,17 @@ public class FcdTaxiEvent {
 		}
 
 		return event;
+	}
+	
+	@Override
+	public boolean equals(Object other) {
+		return other instanceof FcdTaxiEvent &&
+				this.deviceId == ((FcdTaxiEvent) other).deviceId; // the deviceId is randomly generated 
+	}
+
+	@Override
+	public int hashCode() {
+		return (int)this.deviceId;
 	}
 
 }

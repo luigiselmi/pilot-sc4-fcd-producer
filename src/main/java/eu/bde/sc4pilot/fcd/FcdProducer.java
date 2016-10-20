@@ -11,7 +11,7 @@ import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer09;
 public class FcdProducer {
   
 	private static final String LOCAL_KAFKA_BROKER = "localhost:9092";
-	public static final String CLEANSED_RIDES_TOPIC = "historic-taxi";
+	public static final String CLEANSED_RIDES_TOPIC = "cleansedRides";
 
 	public static void main(String[] args) throws Exception {
 
@@ -26,12 +26,11 @@ public class FcdProducer {
 		env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
 
 		// start the data generator
-		DataStream<FcdTaxiEvent> taxiEvent = env.addSource(new FcdTaxiSource(input, servingSpeedFactor));
-
+		DataStream<FcdTaxiEvent> taxiEventStream = env.addSource(new FcdTaxiSource(input, maxEventDelay, servingSpeedFactor));
 		
 
 		// write the filtered data to a Kafka sink
-		taxiEvent.addSink(new FlinkKafkaProducer09<>(
+		taxiEventStream.addSink(new FlinkKafkaProducer09<>(
 				LOCAL_KAFKA_BROKER,
 				CLEANSED_RIDES_TOPIC,
 				new FcdTaxiSchema()));
