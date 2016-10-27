@@ -15,8 +15,8 @@ public class GeoUtils {
 	public double LAT_DEG = LAT_NORTH - LAT_SOUTH;
 	
 	// Number of grid lines along the longitude and latitude
-	public int LON_GRID_LINES = 10;
-	public int LAT_GRID_LINES = 10;
+	public int LON_GRID_LINES = 4;
+	public int LAT_GRID_LINES = 4;
 
 	// angular distances between grid lines along the longitude and the latitude
 	public double DELTA_LON = LON_DEG / LON_GRID_LINES;
@@ -27,7 +27,19 @@ public class GeoUtils {
 	public GeoUtils(){
 		
 	}
-	
+	/**
+	 * The grid is a matrix that contains the value of the cell ids. For example
+	 * if the grid is a 4x4 matrix
+	 *  
+	 * |  1  2  3  4 |
+	 * |  5  6  7  8 |
+	 * |  9 10 11 12 |
+	 * | 13 14 15 16 |
+	 * 
+	 * a point (lon,lat) that is in the cell(2,3) will have a cell id = 7  
+	 * @param rows
+	 * @param columns
+	 */
 	public void initGrid(int rows, int columns) {
 		grid = new int[rows][columns];
 		int counter = 0;
@@ -41,10 +53,6 @@ public class GeoUtils {
 			}
 			
 		}
-	}
-	
-	public int getCellId(int i, int j) {
-		return grid[i - 1][j - 1];
 	}
 	
 	/**
@@ -71,7 +79,9 @@ public class GeoUtils {
 	 */
 	public int mapToGridCell(double lon, double lat) {
 		int cellId = 0;
-		
+		int row = getLatitudeGrid(lat);
+		int column = getLongitudeGrid(lon);
+		cellId = getCellId(row, column);
 		return cellId;
 	}
 	
@@ -86,7 +96,7 @@ public class GeoUtils {
 		for (int i = 0; i < LAT_GRID_LINES; i++) {
 			double upperLatGridLine = LAT_NORTH - DELTA_LAT*i;
 			double lowerLatGridLine = upperLatGridLine - DELTA_LAT;
-			if ( lat < upperLatGridLine && lat > lowerLatGridLine){
+			if ( lat <= upperLatGridLine && lat > lowerLatGridLine){
 				latGrid = i;
 			}
 		}
@@ -104,12 +114,22 @@ public class GeoUtils {
 		for (int i = 0; i < LON_GRID_LINES; i++) {
 			double lowerLonGridLine = LON_WEST + DELTA_LON*i;
 			double upperLonGridLine = lowerLonGridLine + DELTA_LON;
-			if ( lon > lowerLonGridLine && lon < upperLonGridLine){
+			if ( lon >= lowerLonGridLine && lon < upperLonGridLine){
 				lonGrid = i;
 			}
 		}
 		
 		return lonGrid;
+	}
+	
+	/**
+	 * Returns the id of the cell given its row and column indexes.
+	 * @param i
+	 * @param j
+	 * @return
+	 */
+	public int getCellId(int i, int j) {
+		return grid[i - 1][j - 1];
 	}
 
 }

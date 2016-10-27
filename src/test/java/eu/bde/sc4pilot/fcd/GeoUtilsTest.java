@@ -19,14 +19,14 @@ public class GeoUtilsTest {
 	@Test
 	public void testInitGrid() {
 		
-		int cellId = geo.getCellId(4,4);
-		assertTrue(cellId == 16);
+		int cellId = geo.getCellId(3,2);
+		assertTrue(cellId == 10);
 	}
     
 	@Test
 	public void testGetCellId() {
-		int cellId = geo.getCellId(2,4);
-		assertTrue(cellId == 8);
+		int cellId = geo.getCellId(3,3);
+		assertTrue(cellId == 11);
 	}
 
 	@Test
@@ -34,20 +34,21 @@ public class GeoUtilsTest {
 		assertTrue(geo.isWithinBoundingBox(22.90, 40.69));
 	
 	}
-    /*
-	@Test
-	public void testMapToGridCell() {
-		fail("Not yet implemented");
-	}
 
 	@Test
 	public void testGetLatitudeGrid() {
-		fail("Not yet implemented");
+		int row = geo.getLatitudeGrid(40.56);
+		assertTrue(row == 3); 
 	}
 
 	@Test
 	public void testGetLongitudeGrid() {
-		fail("Not yet implemented");
+		int column = geo.getLongitudeGrid(22.925);
+		assertTrue(column == 2);
 	}
-    */
+    
+	@Test
+	public void testMapToGridCell() {
+		assertTrue(geo.mapToGridCell(22.925, 40.56) == 10);
+	}
 }
