@@ -97,7 +97,7 @@ public class GeoUtils {
 			double upperLatGridLine = LAT_NORTH - DELTA_LAT*i;
 			double lowerLatGridLine = upperLatGridLine - DELTA_LAT;
 			if ( lat <= upperLatGridLine && lat > lowerLatGridLine){
-				latGrid = i;
+				latGrid = i + 1;
 			}
 		}
 		
@@ -115,7 +115,7 @@ public class GeoUtils {
 			double lowerLonGridLine = LON_WEST + DELTA_LON*i;
 			double upperLonGridLine = lowerLonGridLine + DELTA_LON;
 			if ( lon >= lowerLonGridLine && lon < upperLonGridLine){
-				lonGrid = i;
+				lonGrid = i + 1;
 			}
 		}
 		
@@ -128,8 +128,8 @@ public class GeoUtils {
 	 * @param j
 	 * @return
 	 */
-	public int getCellId(int i, int j) {
-		return grid[i - 1][j - 1];
+	public int getCellId(int row, int column) {
+		return grid[row - 1][column - 1];
 	}
 
 }

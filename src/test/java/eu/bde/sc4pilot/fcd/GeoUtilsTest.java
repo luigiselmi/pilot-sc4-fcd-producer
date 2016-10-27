@@ -43,12 +43,12 @@ public class GeoUtilsTest {
 
 	@Test
 	public void testGetLongitudeGrid() {
-		int column = geo.getLongitudeGrid(22.925);
+		int column = geo.getLongitudeGrid(22.924);
 		assertTrue(column == 2);
 	}
     
 	@Test
 	public void testMapToGridCell() {
-		assertTrue(geo.mapToGridCell(22.925, 40.56) == 10);
+		assertTrue(geo.mapToGridCell(22.924, 40.56) == 10);
 	}
 }
