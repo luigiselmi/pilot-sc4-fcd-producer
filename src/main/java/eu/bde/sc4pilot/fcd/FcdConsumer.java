@@ -1,67 +1,160 @@
 package eu.bde.sc4pilot.fcd;
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
 import java.util.Properties;
-import java.util.Random;
 
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.flink.api.common.functions.MapFunction;
+import org.apache.flink.api.java.tuple.Tuple;
+import org.apache.flink.api.java.tuple.Tuple1;
+import org.apache.flink.api.java.tuple.Tuple2;
+import org.apache.flink.api.java.tuple.Tuple3;
+import org.apache.flink.api.java.utils.ParameterTool;
+import org.apache.flink.streaming.api.TimeCharacteristic;
+import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
+import org.apache.flink.streaming.api.functions.timestamps.BoundedOutOfOrdernessTimestampExtractor;
+import org.apache.flink.streaming.api.functions.windowing.WindowFunction;
+import org.apache.flink.streaming.api.windowing.time.Time;
+import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
+import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer09;
+import org.apache.flink.util.Collector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.io.Resources;
+
+
 
 public class FcdConsumer {
 	
-	public static void main(String[] args) throws IOException {
-        // set up house-keeping
-        ObjectMapper mapper = new ObjectMapper();
-        
-        // and the consumer
-        KafkaConsumer<String, String> consumer;
-        try (InputStream props = Resources.getResource("consumer.props").openStream()) {
-            Properties properties = new Properties();
-            properties.load(props);
-            if (properties.getProperty("group.id") == null) {
-                properties.setProperty("group.id", "group-" + new Random().nextInt(100000));
-            }
-            consumer = new KafkaConsumer<>(properties);
-        }
-        consumer.subscribe(Arrays.asList("taxy"));
-        int timeouts = 0;
-        //noinspection InfiniteLoopStatement
-        while (true) {
-            // read records with a short timeout. If we time out, we don't really care.
-            ConsumerRecords<String, String> records = consumer.poll(100);
-            if (records.count() == 0) {
-                timeouts++;
-            } else {
-                System.out.printf("Got %d records after %d timeouts\n", records.count(), timeouts);
-                timeouts = 0;
-            }
-            for (ConsumerRecord<String, String> record : records) {
-                if(record.topic().equals("taxy")) {
-                        // the send time is encoded inside the message
-                        /*
-                	    JsonNode msg = mapper.readTree(record.value());
-                        if (msg.get("type").asText().equals("test")) {
-                                long latency = (long) ((System.nanoTime() * 1e-9 - msg.get("t").asDouble()) * 1000);
-                        }
-                        else {                           
-                                throw new IllegalArgumentException("Illegal message type: " + msg.get("type"));
-                        }
-                        */
-                	    
-                	    System.out.println(record.key() + " - " + record.value());
-                }
-                else {
-                        throw new IllegalStateException("Shouldn't be possible to get message on topic " + record.topic());
-                }
-            }
-        }
-    }
+  private static String KAFKA_TOPIC_PARAM_NAME = "topic";
+  private static String KAFKA_TOPIC_PARAM_VALUE = null;
+  private static String TIME_WINDOW_PARAM_NAME = "window";
+  private static int TIME_WINDOW_PARAM_VALUE = 0;
+  private static final int MAX_EVENT_DELAY = 60; // events are at most 60 sec out-of-order.
+  private static final Logger log = LoggerFactory.getLogger(FcdConsumer.class);
 
+  public static void main(String[] args) throws Exception {
+	  
+	ParameterTool parameter = ParameterTool.fromArgs(args);
+    
+    if (parameter.getNumberOfParameters() < 2) {
+      throw new IllegalArgumentException("The application needs two arguments. The first is the name of the kafka topic from which it has to \n"
+          + "fetch the data. The second argument is the size of the window, in seconds, to which the aggregation function must be applied. \n");
+    }
+    
+    KAFKA_TOPIC_PARAM_VALUE = parameter.get(KAFKA_TOPIC_PARAM_NAME);
+    TIME_WINDOW_PARAM_VALUE = parameter.getInt(TIME_WINDOW_PARAM_NAME, TIME_WINDOW_PARAM_VALUE);
+    
+    Properties properties = null;
+    
+    try (InputStream props = Resources.getResource("consumer.props").openStream()) {
+      properties = new Properties();
+      properties.load(props);
+      
+    }
+    
+    // set up streaming execution environment
+    StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+    
+    // set the time characteristic to include an event in a window (event time|ingestion time|processing time) 
+    env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
+    //env.getConfig().setAutoWatermarkInterval(1000);
+    
+    // create a Kafka consumer
+	FlinkKafkaConsumer09<FcdTaxiEvent> consumer = new FlinkKafkaConsumer09<>(
+			KAFKA_TOPIC_PARAM_VALUE,
+			new FcdTaxiSchema(),
+			properties);
+	
+	// assign a timestamp extractor to the consumer
+	consumer.assignTimestampsAndWatermarks(new FcdTaxiTSExtractor());
+	
+	// create a FCD event data stream
+	DataStream<FcdTaxiEvent> events = env.addSource(consumer);
+	
+	// Count events that happen in the bounding box
+	DataStream<Tuple3<Integer, Integer, Long>> boxBoundedEvents = events
+			// match each event within the bounding box to grid cell
+			.map(new GridCellMatcher())
+			// partition by cell
+			.keyBy(0)
+			// build time window
+			.timeWindow(Time.minutes(15))
+			.apply(new EventCounter());
+	
+    
+	boxBoundedEvents.print();
+    
+    env.execute("Read Historic Floating Cars Data from Kafka");
+  
+  
+  }
+  
+  /**
+   * Counts the number of events.
+   */
+  public static class EventCounter implements WindowFunction<
+	Tuple2<Integer, Boolean>,       // input type (cell id, is within bb)
+	Tuple3<Integer, Integer, Long>, // output type (cell id, counts, window time)
+	Tuple,                          // key type
+	TimeWindow>                     // window type
+	{
+
+	  @SuppressWarnings("unchecked")
+	  @Override
+	  public void apply(
+		Tuple key,
+		TimeWindow window,
+		Iterable<Tuple2<Integer, Boolean>> gridCells,
+		Collector<Tuple3<Integer, Integer, Long>> out) throws Exception {
+
+		int cellId = ((Tuple1<Integer>)key).f0;
+		long windowTime = window.getEnd();
+		
+		// counts all the records from the same cell within the bounding box
+		int cnt = 0;
+		for(Tuple2<Integer, Boolean> c : gridCells) {
+			if ( c.f1 ) 
+			  cnt += 1;
+		}
+
+		out.collect(new Tuple3<>(cellId, cnt, windowTime));
+	}
+  }
+  
+  /**
+	 * Maps taxi ride to grid cell and event type.
+	 * Start records use departure location, end record use arrival location.
+	 */
+	public static class GridCellMatcher implements MapFunction<FcdTaxiEvent, Tuple2<Integer, Boolean>> {
+		
+		GeoUtils geo = new GeoUtils();
+
+		@Override
+		public Tuple2<Integer, Boolean> map(FcdTaxiEvent event) throws Exception {
+			return new Tuple2<>(
+					geo.mapToGridCell(event.lon, event.lat),
+					geo.isWithinBoundingBox(event.lon, event.lat)
+			);
+		}
+	}
+  
+  /**
+   * Assigns timestamps to FCD Taxi records.
+   * Watermarks are a fixed time interval behind the max timestamp and are periodically emitted.
+  */
+  public static class FcdTaxiTSExtractor extends BoundedOutOfOrdernessTimestampExtractor<FcdTaxiEvent> {
+	
+	public FcdTaxiTSExtractor() {
+		super(Time.seconds(MAX_EVENT_DELAY));
+	}
+	
+	@Override
+	public long extractTimestamp(FcdTaxiEvent event) {
+			return event.timestamp.getMillis();
+	}
+  }
+    
 
 }

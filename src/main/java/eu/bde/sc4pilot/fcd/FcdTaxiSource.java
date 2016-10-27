@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Calendar;
+import java.util.zip.GZIPInputStream;
 import java.util.zip.ZipInputStream;
 
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
@@ -33,7 +34,7 @@ public class FcdTaxiSource implements SourceFunction<FcdTaxiEvent>{
 	@Override
 	public void run(SourceContext<FcdTaxiEvent> sourceContext) throws Exception {
 
-		zipStream = new ZipInputStream(new FileInputStream(dataFilePath));
+		zipStream = new GZIPInputStream(new FileInputStream(dataFilePath));
 		reader = new BufferedReader(new InputStreamReader(zipStream, "UTF-8"));
 		
 		generateStream(sourceContext);

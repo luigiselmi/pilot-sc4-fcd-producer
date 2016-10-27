@@ -10,14 +10,14 @@ import org.joda.time.format.DateTimeFormatter;
 public class FcdTaxiEvent {
 	
 	private static transient DateTimeFormatter timeFormatter =
-			DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss").withLocale(Locale.ENGLISH).withZoneUTC();
+			DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.SSS");
 	
 	public int deviceId = -1;
 	public DateTime timestamp;
 	public double lon = 0.0;
 	public double lat = 0.0;
 	public double altitude = 0.0;
-	public int speed = 0;
+	public double speed = 0;
 	public double orientation = 0.0;
 	public int transfer = 0;
 	
@@ -26,7 +26,7 @@ public class FcdTaxiEvent {
 			            double lon, 
 			            double lat, 
 			            double altitude, 
-			            int speed, 
+			            double speed, 
 			            double orientation, 
 			            int transfer) {
 		this.deviceId = deviceId;
@@ -43,13 +43,13 @@ public class FcdTaxiEvent {
 	
 	public String toString() {
 		StringBuilder sb = new StringBuilder();
-		sb.append(deviceId).append(",");
-		sb.append(timestamp).append(",");
-		sb.append(lon).append(",");
-		sb.append(lat).append(",");
-		sb.append(altitude).append(",");
-		sb.append(speed).append(",");
-		sb.append(orientation).append(",");
+		sb.append(deviceId).append("\t");
+		sb.append(timestamp.toString(timeFormatter)).append("\t");
+		sb.append(lon).append("\t");
+		sb.append(lat).append("\t");
+		sb.append(altitude).append("\t");
+		sb.append(speed).append("\t");
+		sb.append(orientation).append("\t");
 		sb.append(transfer);
 
 		return sb.toString();
@@ -57,7 +57,7 @@ public class FcdTaxiEvent {
 	
 	public static FcdTaxiEvent fromString(String line) {
 
-		String[] tokens = line.split(",");
+		String[] tokens = line.split("\t");
 		if (tokens.length != 8) {
 			throw new RuntimeException("Invalid record: " + line);
 		}
@@ -67,11 +67,11 @@ public class FcdTaxiEvent {
 		try {
 			event.deviceId = Integer.parseInt(tokens[0]);
 			event.timestamp = DateTime.parse(tokens[1], timeFormatter);
-			event.lon = tokens[2].length() > 0 ? Double.parseDouble(tokens[2]) : 0.0f;
-			event.lat = tokens[3].length() > 0 ? Double.parseDouble(tokens[3]) : 0.0f;
-			event.altitude = tokens[4].length() > 0 ? Double.parseDouble(tokens[4]) : 0.0f;
-			event.speed = tokens[5].length() > 0 ? Integer.parseInt(tokens[5]) : 0;
-			event.orientation = tokens[6].length() > 0 ? Double.parseDouble(tokens[7]) : 0.0f;
+			event.lon = tokens[2].length() > 0 ? Double.parseDouble(tokens[2]) : 0.0;
+			event.lat = tokens[3].length() > 0 ? Double.parseDouble(tokens[3]) : 0.0;
+			event.altitude = tokens[4].length() > 0 ? Double.parseDouble(tokens[4]) : 0.0;
+			event.speed = tokens[5].length() > 0 ? Double.parseDouble(tokens[5]) : 0.0;
+			event.orientation = tokens[6].length() > 0 ? Double.parseDouble(tokens[7]) : 0.0;
 			event.transfer = tokens[7].length() > 0 ? Integer.parseInt(tokens[7]) : 0;
 
 		} catch (NumberFormatException nfe) {
