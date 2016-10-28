@@ -73,7 +73,7 @@ public class FcdConsumer {
 	// create a FCD event data stream
 	DataStream<FcdTaxiEvent> events = env.addSource(consumer);
 	
-	// Count events that happen in the bounding box
+	// Counts the events that happen in any cell within the bounding box
 	DataStream<Tuple3<Integer, Integer, Long>> boxBoundedEvents = events
 			// match each event within the bounding box to grid cell
 			.map(new GridCellMatcher())
