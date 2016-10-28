@@ -113,9 +113,9 @@ public class FcdConsumer {
 		long windowTime = window.getEnd();
 		
 		// counts all the records from the same cell within the bounding box
+		// or outside (cell id = 0)
 		int cnt = 0;
 		for(Tuple2<Integer, Boolean> c : gridCells) {
-			if ( c.f1 ) 
 			  cnt += 1;
 		}
 
@@ -129,13 +129,12 @@ public class FcdConsumer {
 	 */
 	public static class GridCellMatcher implements MapFunction<FcdTaxiEvent, Tuple2<Integer, Boolean>> {
 		
-		GeoUtils geo = new GeoUtils();
-
+		int [][] grid = GeoUtils.initGrid();
 		@Override
 		public Tuple2<Integer, Boolean> map(FcdTaxiEvent event) throws Exception {
 			return new Tuple2<>(
-					geo.mapToGridCell(event.lon, event.lat),
-					geo.isWithinBoundingBox(event.lon, event.lat)
+					GeoUtils.mapToGridCell(event.lon, event.lat, grid),
+					GeoUtils.isWithinBoundingBox(event.lon, event.lat)
 			);
 		}
 	}

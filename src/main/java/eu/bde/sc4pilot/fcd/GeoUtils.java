@@ -5,28 +5,23 @@ public class GeoUtils {
 	// Bounding box of the area of Thessaloniki 
 	// The bounding box is determined by two points (LON_WEST, LAT_NORTH) and (LON_EAST, LAT_SOUTH)
 	// The reference point of the grid is (LON_WEST, LAT_NORTH)
-	public double LON_EAST = 23.05;
-	public double LON_WEST = 22.80;
-	public double LAT_NORTH = 40.70;
-	public double LAT_SOUTH = 40.50;
+	public static double LON_EAST = 23.05;
+	public static double LON_WEST = 22.80;
+	public static double LAT_NORTH = 40.70;
+	public static double LAT_SOUTH = 40.50;
 
 	// bounding box angles widths
-	public double LON_DEG = LON_EAST - LON_WEST;
-	public double LAT_DEG = LAT_NORTH - LAT_SOUTH;
+	public static double LON_DEG = LON_EAST - LON_WEST;
+	public static double LAT_DEG = LAT_NORTH - LAT_SOUTH;
 	
 	// Number of grid lines along the longitude and latitude
-	public int LON_GRID_LINES = 4;
-	public int LAT_GRID_LINES = 4;
+	public static int LON_GRID_LINES = 4;
+	public static int LAT_GRID_LINES = 4;
 
 	// angular distances between grid lines along the longitude and the latitude
-	public double DELTA_LON = LON_DEG / LON_GRID_LINES;
-	public double DELTA_LAT = LAT_DEG / LAT_GRID_LINES;
+	public static double DELTA_LON = LON_DEG / LON_GRID_LINES;
+	public static double DELTA_LAT = LAT_DEG / LAT_GRID_LINES;
 	
-	public int [][] grid; 
-	
-	public GeoUtils(){
-		
-	}
 	/**
 	 * The grid is a matrix that contains the value of the cell ids. For example
 	 * if the grid is a 4x4 matrix
@@ -40,19 +35,21 @@ public class GeoUtils {
 	 * @param rows
 	 * @param columns
 	 */
-	public void initGrid(int rows, int columns) {
-		grid = new int[rows][columns];
+	public static int [][] initGrid() {
+		int [][] grid = new int[LAT_GRID_LINES][LON_GRID_LINES];
 		int counter = 0;
 		int lastCell = 0;
-		for(int i = 0; i < columns; i++) {
+		for(int i = 0; i < LON_GRID_LINES; i++) {
 			lastCell += counter;
-			for(int j = 0; j < rows; j++) {
+			for(int j = 0; j < LAT_GRID_LINES; j++) {
 				int cellId = 1 + i + j + lastCell;
 				grid[i][j] = cellId;
 				counter = j;
 			}
 			
 		}
+		
+		return grid;
 	}
 	
 	/**
@@ -64,24 +61,27 @@ public class GeoUtils {
 	 *
 	 * @return true if the location is within the bounding box, otherwise false.
 	 */
-	public boolean isWithinBoundingBox(double lon, double lat) {
+	public static boolean isWithinBoundingBox(double lon, double lat) {
         
          return (lon > LON_WEST && lon < LON_EAST) && (lat > LAT_SOUTH && lat < LAT_NORTH); 
 	}
 	
 	/**
 	 * Maps a location specified by latitude and longitude values to a cell of a
-	 * grid covering the bounding box.
+	 * grid covering the bounding box. Retuns the id of the cell in which the point is located
+	 * If the point is outside the bounding box, returns 0
 	 * @param lon longitude of the location to map
 	 * @param lat latitude of the location to map
 	 *
 	 * @return id of mapped grid cell.
 	 */
-	public int mapToGridCell(double lon, double lat) {
+	public static int mapToGridCell(double lon, double lat, int [][] grid) {
 		int cellId = 0;
 		int row = getLatitudeGrid(lat);
 		int column = getLongitudeGrid(lon);
-		cellId = getCellId(row, column);
+		if(isWithinBoundingBox(lon,lat))
+		  cellId = grid[row - 1][column - 1];
+		
 		return cellId;
 	}
 	
@@ -91,14 +91,13 @@ public class GeoUtils {
 	 * @param lat
 	 * @return
 	 */
-	public int getLatitudeGrid(double lat) {
+	public static int getLatitudeGrid(double lat) {
 		int latGrid = 0;
 		for (int i = 0; i < LAT_GRID_LINES; i++) {
 			double upperLatGridLine = LAT_NORTH - DELTA_LAT*i;
 			double lowerLatGridLine = upperLatGridLine - DELTA_LAT;
-			if ( lat <= upperLatGridLine && lat > lowerLatGridLine){
-				latGrid = i + 1;
-			}
+			if ( lat <= upperLatGridLine && lat > lowerLatGridLine)
+				return latGrid = i + 1;
 		}
 		
 		return latGrid;
@@ -109,26 +108,20 @@ public class GeoUtils {
 	 * @param lon
 	 * @return
 	 */
-	public int getLongitudeGrid(double lon) {
+	public static int getLongitudeGrid(double lon) {
 		int lonGrid = 0;
 		for (int i = 0; i < LON_GRID_LINES; i++) {
 			double lowerLonGridLine = LON_WEST + DELTA_LON*i;
 			double upperLonGridLine = lowerLonGridLine + DELTA_LON;
-			if ( lon >= lowerLonGridLine && lon < upperLonGridLine){
-				lonGrid = i + 1;
-			}
+			if ( lon >= lowerLonGridLine && lon < upperLonGridLine)
+				return lonGrid = i + 1;
+			
 		}
 		
 		return lonGrid;
 	}
 	
-	/**
-	 * Returns the id of the cell given its row and column indexes.
-	 * @param i
-	 * @param j
-	 * @return
-	 */
-	public int getCellId(int row, int column) {
+	public static int getCellId(int row, int column, int [][] grid){
 		return grid[row - 1][column - 1];
 	}
 

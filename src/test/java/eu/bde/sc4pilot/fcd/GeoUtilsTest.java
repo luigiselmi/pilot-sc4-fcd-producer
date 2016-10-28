@@ -8,47 +8,52 @@ import org.junit.Test;
 
 public class GeoUtilsTest {
 	
-	GeoUtils geo;
+	int [][] grid;
 
 	@Before
 	public void setUp() throws Exception {
-		geo = new GeoUtils();
-		geo.initGrid(4,4);
+		grid = GeoUtils.initGrid();
 	}
 
 	@Test
 	public void testInitGrid() {
 		
-		int cellId = geo.getCellId(3,2);
+		int cellId = GeoUtils.getCellId(3,2,grid);
 		assertTrue(cellId == 10);
 	}
     
 	@Test
 	public void testGetCellId() {
-		int cellId = geo.getCellId(3,3);
+		int cellId = GeoUtils.getCellId(3,3,grid);
 		assertTrue(cellId == 11);
 	}
 
 	@Test
 	public void testIsWithinBoundingBox() {
-		assertTrue(geo.isWithinBoundingBox(22.90, 40.69));
+		assertTrue(GeoUtils.isWithinBoundingBox(22.90, 40.69));
 	
 	}
 
 	@Test
 	public void testGetLatitudeGrid() {
-		int row = geo.getLatitudeGrid(40.56);
+		int row = GeoUtils.getLatitudeGrid(40.56);
 		assertTrue(row == 3); 
 	}
 
 	@Test
 	public void testGetLongitudeGrid() {
-		int column = geo.getLongitudeGrid(22.924);
+		int column = GeoUtils.getLongitudeGrid(22.924);
 		assertTrue(column == 2);
 	}
     
 	@Test
 	public void testMapToGridCell() {
-		assertTrue(geo.mapToGridCell(22.924, 40.56) == 10);
+		assertTrue(GeoUtils.mapToGridCell(22.924, 40.56, grid) == 10);
 	}
+	
+	@Test
+	public void testOffBoundingBox() {
+		assertTrue(GeoUtils.mapToGridCell(22.00, 40.80, grid) == 0);
+	}
+	
 }
