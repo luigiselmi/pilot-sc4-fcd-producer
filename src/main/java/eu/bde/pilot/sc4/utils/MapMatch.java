@@ -39,6 +39,7 @@ public class MapMatch {
     this.host = host;
     this.port = port;
     conn = initRserve(host, port);
+    
   }
   
   /**
@@ -71,7 +72,7 @@ public class MapMatch {
       log.info("Number of FCD taxi events: " + numOfEvents);
       // Evaluates R commands
       //conn.eval("setwd('" + RSERVE_HOME + "')"); //to be removed, it must be done in the R docker image
-      conn.voidEval("loadPackages()");  //to be removed, it must be done in the R docker image
+      //conn.voidEval("loadPackages()");  //to be removed, it must be done in the R docker image
       //conn.voidEval("road<-readGeoData()");  //to be removed, it must be done in the R docker image
       conn.assign("gdata", REXP.createDataFrame(list));
       //conn.voidEval("initgps<-initGpsData(gpsdata)");
@@ -102,8 +103,9 @@ public class MapMatch {
     RConnection c = null;
     try {
       c = new RConnection(rserveHost, rservePort);
+      c.voidEval("loadPackages()");
       REXP x = c.eval("R.version.string");
-      log.info(x.asString());;
+      log.info(x.asString());
       
     } catch (RserveException e) {     
       e.printStackTrace();

@@ -35,10 +35,9 @@ import eu.bde.pilot.sc4.utils.MapMatch;
  * source(), read the data from the file system
  * 
  * 1) mapGeohash(), compute the geohash from the coordinates pair
- * 2) filter(geohash), remove records from the specified area
- * 3) keyBy(geohash).window(5 min.).apply(mapMatch()), map-match 
+ * 2) keyBy(geohash).window(5 min.).apply(mapMatch()), map-match 
  *    the coordinates' pairs within a time window
- * 4) KeyBy(road_segment).apply(average speed, number of vehicles)
+ * 3) KeyBy(road_segment).apply(average speed, flow)
  * 
  * sink(), store in Kafka topics (one for each road segment)
  *  
@@ -70,33 +69,31 @@ public class FcdProducer {
 		// 1st subtask compute the geohash of the coordinate pairs
 		DataStream<Tuple9<Integer,String,Double,Double,Double,Double,Double,Integer,String>> streamGeohashTuples = taxiEventStream.map(new GeohashFunction());
 		
-		//streamGeohashTuples.print();
-		
 	  // 2nd subtask, map-match coordinates (longitude, latitude) pairs to road segments
 		DataStream<Tuple9<Integer,String,Double,Double,Double,Double,Double,Integer,String>> roadSegmentStream = streamGeohashTuples
 		.keyBy(8) // keyby geohash
 		.timeWindow(Time.minutes(2))
 		.apply(new MapMatcher());
 		
-	  // 3rd subtask, keyBy road segment and compute number of vehicles and average speed in the time window 
-    //DataStream<Tuple9<Integer,String,Double,Double,Double,Double,Double,Integer,String>> streamMatchedTuples = taxiEventStream.map(new AverageSpeed());
+	  // 3rd subtask, keyBy road segment and compute number of vehicles (flow) and average speed in the time window 
+    DataStream<Tuple4<String,String,Double,Integer>> roadSegmentSpeedAndFlowStream = roadSegmentStream
+        .keyBy(8)
+        .timeWindow(Time.minutes(2))
+        .apply(new AverageSpeed());
 		
 		
-		// filter out taxis with speed == 0
-		//DataStream<FcdTaxiEvent> filteredTaxiEventStream = taxiEventStream
-		//		.filter(new FcdGeohashFilter());
+    roadSegmentSpeedAndFlowStream.print();
 		
-		roadSegmentStream.print();
-		
-		// write the filtered data to a Kafka sink
+		// write the data to a sink
 		/*
 		filteredTaxiEventStream.addSink(new FlinkKafkaProducer09<>(
 				KAFKA_BROKER,
 				KAFKA_TOPIC,
 				new FcdTaxiSchema()));
     */
+    
 		// run the pipeline
-		env.execute("Write Historic FCD Taxi from FS to Kafka");
+		env.execute("Historic FCD Taxi Data");
 	}
 	
 	public static class GeohashFunction implements MapFunction<FcdTaxiEvent, Tuple9<Integer,String,Double,Double,Double,Double,Double,Integer,String>> {
@@ -151,18 +148,33 @@ public class FcdProducer {
     
   }
   
-  /**
-   * Filter the records by their geohash
-   * @author luigi
-   *
-   */
-	public static class FcdGeohashFilter implements FilterFunction<FcdTaxiEvent> {
-
-		@Override
-		public boolean filter(FcdTaxiEvent event) throws Exception {
-			System.out.println("Device Id: " + event.deviceId);
-			return event.speed > 0.0;
-			
-		}
+  public static class AverageSpeed implements WindowFunction<
+    Tuple9<Integer,String,Double,Double,Double,Double,Double,Integer,String>,
+    Tuple4<String,String,Double,Integer>,
+    Tuple,
+    TimeWindow> {
+  
+    @Override
+    public void apply(
+      Tuple key,
+      TimeWindow window,
+      Iterable<Tuple9<Integer,String,Double,Double,Double,Double,Double,Integer,String>> records,
+      Collector<Tuple4<String, String, Double, Integer>> out) throws Exception {
+      
+      int recordsCounter = 0; // number of records (or number of vehicles)
+      String roadSegmentId = "N/A"; // OpenStreetMap identifier of a road segment (between two junctions)
+      String timestamp = "N/A";
+      double speedAccumulator = 0.0;
+      for (Tuple9<Integer,String,Double,Double,Double,Double,Double,Integer,String> tuple9: records){
+        double speed = tuple9.f5;
+        recordsCounter++;
+        speedAccumulator += speed;
+        roadSegmentId = tuple9.f8;
+        timestamp = tuple9.f1;
+      }
+    
+      double averageSpeed = speedAccumulator / recordsCounter; 
+      out.collect(new Tuple4<>(roadSegmentId,timestamp, averageSpeed,recordsCounter));
+    }
   }
 }
