@@ -1,4 +1,4 @@
-package eu.bde.sc4pilot.fcd;
+package eu.bde.pilot.sc4.fcd;
 
 import java.io.InputStream;
 import java.util.Properties;
@@ -22,6 +22,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.common.io.Resources;
+
+import eu.bde.pilot.sc4.utils.GeoUtils;
 
 
 
@@ -95,32 +97,32 @@ public class FcdConsumer {
    * Counts the number of events.
    */
   public static class EventCounter implements WindowFunction<
-	Tuple2<Integer, Boolean>,       // input type (cell id, is within bb)
-	Tuple3<Integer, Integer, Long>, // output type (cell id, counts, window time)
-	Tuple,                          // key type
-	TimeWindow>                     // window type
+	  Tuple2<Integer, Boolean>,       // input type (cell id, is within bb)
+	  Tuple3<Integer, Integer, Long>, // output type (cell id, counts, window time)
+	  Tuple,                          // key type
+	  TimeWindow>                     // window type
 	{
 
 	  @SuppressWarnings("unchecked")
 	  @Override
 	  public void apply(
-		Tuple key,
-		TimeWindow window,
-		Iterable<Tuple2<Integer, Boolean>> gridCells,
-		Collector<Tuple3<Integer, Integer, Long>> out) throws Exception {
+		  Tuple key,
+		  TimeWindow window,
+		  Iterable<Tuple2<Integer, Boolean>> gridCells,
+		  Collector<Tuple3<Integer, Integer, Long>> out) throws Exception {
 
-		int cellId = ((Tuple1<Integer>)key).f0;
-		long windowTime = window.getEnd();
+		  int cellId = ((Tuple1<Integer>)key).f0;
+		  long windowTime = window.getEnd();
 		
-		// counts all the records from the same cell within the bounding box
-		// or outside (cell id = 0)
-		int cnt = 0;
-		for(Tuple2<Integer, Boolean> c : gridCells) {
+		  // counts all the records from the same cell within the bounding box
+		  // or outside (cell id = 0)
+		  int cnt = 0;
+		  for(Tuple2<Integer, Boolean> c : gridCells) {
 			  cnt += 1;
-		}
+		  }
 
-		out.collect(new Tuple3<>(cellId, cnt, windowTime));
-	}
+		  out.collect(new Tuple3<>(cellId, cnt, windowTime));
+	  }
   }
   
   /**
@@ -145,14 +147,14 @@ public class FcdConsumer {
   */
   public static class FcdTaxiTSExtractor extends BoundedOutOfOrdernessTimestampExtractor<FcdTaxiEvent> {
 	
-	public FcdTaxiTSExtractor() {
-		super(Time.seconds(MAX_EVENT_DELAY));
-	}
+	  public FcdTaxiTSExtractor() {
+		  super(Time.seconds(MAX_EVENT_DELAY));
+	  }
 	
-	@Override
-	public long extractTimestamp(FcdTaxiEvent event) {
+	  @Override
+	  public long extractTimestamp(FcdTaxiEvent event) {
 			return event.timestamp.getMillis();
-	}
+	  }
   }
     
 

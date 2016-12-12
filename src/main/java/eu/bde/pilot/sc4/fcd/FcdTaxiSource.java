@@ -1,4 +1,4 @@
-package eu.bde.sc4pilot.fcd;
+package eu.bde.pilot.sc4.fcd;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;

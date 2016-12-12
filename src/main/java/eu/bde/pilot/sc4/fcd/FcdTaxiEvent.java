@@ -1,4 +1,4 @@
-package eu.bde.sc4pilot.fcd;
+package eu.bde.pilot.sc4.fcd;
 
 import java.util.Locale;
 
@@ -12,14 +12,25 @@ public class FcdTaxiEvent {
 	private static transient DateTimeFormatter timeFormatter =
 			DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss.SSS");
 	
+	public static final String DEVICE_ID = "device_random_id";
+	public static final String TIMESTAMP = "recorded_timestamp";
+	public static final String LONGITUDE = "lon";
+	public static final String LATITUDE = "lat";
+	public static final String ALTITUDE = "altitude";
+	public static final String SPEED = "speed";
+	public static final String ORIENTATION = "orientation";
+	public static final String TRANSFER = "transfer";
+	public static final String ROAD_SEGMENT = "osmids";
+	
 	public int deviceId = -1;
 	public DateTime timestamp;
 	public double lon = 0.0;
 	public double lat = 0.0;
 	public double altitude = 0.0;
-	public double speed = 0;
+	public double speed = 0.0;
 	public double orientation = 0.0;
 	public int transfer = 0;
+	public String roadSegment = null;
 	
 	public FcdTaxiEvent(int deviceId, 
 			            DateTime timestamp, 
@@ -28,7 +39,8 @@ public class FcdTaxiEvent {
 			            double altitude, 
 			            double speed, 
 			            double orientation, 
-			            int transfer) {
+			            int transfer,
+			            String roadSegment) {
 		this.deviceId = deviceId;
 		this.timestamp = timestamp;
 		this.lon = lon;
@@ -37,6 +49,7 @@ public class FcdTaxiEvent {
 		this.speed = speed;
 		this.orientation = orientation;
 		this.transfer = transfer;
+		this.roadSegment = roadSegment;
 	}
 
 	public FcdTaxiEvent() {}
@@ -50,7 +63,8 @@ public class FcdTaxiEvent {
 		sb.append(altitude).append("\t");
 		sb.append(speed).append("\t");
 		sb.append(orientation).append("\t");
-		sb.append(transfer);
+		sb.append(transfer).append("\t");
+		sb.append(roadSegment);
 
 		return sb.toString();
 	}

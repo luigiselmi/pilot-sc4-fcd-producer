@@ -1,4 +1,4 @@
-package eu.bde.sc4pilot.fcd;
+package eu.bde.pilot.sc4.fcd;
 
 import org.apache.flink.api.common.typeinfo.TypeInformation;
 import org.apache.flink.api.java.typeutils.TypeExtractor;
