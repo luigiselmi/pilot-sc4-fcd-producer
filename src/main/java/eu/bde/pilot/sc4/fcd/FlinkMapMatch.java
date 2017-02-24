@@ -2,13 +2,9 @@ package eu.bde.pilot.sc4.fcd;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.util.ArrayList;
-import java.util.Iterator;
 
-import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.java.tuple.Tuple;
-import org.apache.flink.api.java.tuple.Tuple10;
 import org.apache.flink.api.java.tuple.Tuple4;
 import org.apache.flink.api.java.tuple.Tuple9;
 import org.apache.flink.api.java.utils.ParameterTool;
@@ -21,11 +17,8 @@ import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer09;
 import org.apache.flink.util.Collector;
 import org.rosuda.REngine.REXPMismatchException;
-import org.rosuda.REngine.Rserve.RConnection;
 
 import eu.bde.pilot.sc4.utils.Geohash;
-import eu.bde.pilot.sc4.utils.GpsJsonReader;
-import eu.bde.pilot.sc4.utils.GpsRecord;
 import eu.bde.pilot.sc4.utils.MapMatch;
 
 
@@ -44,7 +37,7 @@ import eu.bde.pilot.sc4.utils.MapMatch;
  * @author Luigi Selmi
  *
  */
-public class FcdProducer {
+public class FlinkMapMatch {
   
 	private static final String KAFKA_BROKER = "localhost:9092";
 	public static final String KAFKA_TOPIC = "historic-fcd";
@@ -55,6 +48,7 @@ public class FcdProducer {
 
 		ParameterTool params = ParameterTool.fromArgs(args);
 		String input = params.getRequired("input"); //path to the data file
+		String topic = params.getRequired("topic");
 
 		final int maxEventDelay = 60;       // events are out of order by max 60 seconds
 		final int servingSpeedFactor = 600; // events of 10 minute are served in 1 second
@@ -84,13 +78,14 @@ public class FcdProducer {
 		
     roadSegmentSpeedAndFlowStream.print();
 		
-		// write the data to a sink
-		/*
-		filteredTaxiEventStream.addSink(new FlinkKafkaProducer09<>(
-				KAFKA_BROKER,
-				KAFKA_TOPIC,
-				new FcdTaxiSchema()));
-    */
+    // Write the data to a Kafka topic (sink) using the avro binary format
+    /*
+    FlinkKafkaProducer09<FcdTaxiEvent> producer = new FlinkKafkaProducer09<FcdTaxiEvent>(
+        KAFKA_BROKER,
+        topic,
+        new FcdTaxiSchema());
+   */ 
+    //roadSegmentSpeedAndFlowStream.addSink(producer);
     
 		// run the pipeline
 		env.execute("Historic FCD Taxi Data");

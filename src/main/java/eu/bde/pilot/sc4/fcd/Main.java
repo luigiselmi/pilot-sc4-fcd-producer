@@ -16,7 +16,7 @@ public class Main {
         try {
 		    switch (args[0]) {
 		        case "producer":
-		            FcdProducer.main(args);
+		            FlinkMapMatch.main(args);
 		            break;
 		        case "consumer":
 		            FcdConsumer.main(args);

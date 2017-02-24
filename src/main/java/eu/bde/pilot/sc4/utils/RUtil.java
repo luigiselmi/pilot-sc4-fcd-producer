@@ -31,6 +31,17 @@ public class RUtil {
   
   private final Logger log = LoggerFactory.getLogger(RUtil.class);
   
+  // database column names
+  public static final String DEVICE_ID = "device_random_id";
+  public static final String TIMESTAMP = "recorded_timestamp";
+  public static final String LONGITUDE = "lon";
+  public static final String LATITUDE = "lat";
+  public static final String ALTITUDE = "altitude";
+  public static final String SPEED = "speed";
+  public static final String ORIENTATION = "orientation";
+  public static final String TRANSFER = "transfer";
+  public static final String ROAD_SEGMENT = "osmids";
+  
   /**
    *   
    * @param is
@@ -187,16 +198,16 @@ public class RUtil {
     transfer = transferList.stream().mapToInt(x -> x).toArray();
     System.out.println("transfer: " + transfer.length);
     
-    rlist.put(FcdTaxiEvent.DEVICE_ID, new REXPInteger(deviceId));
-    rlist.put(FcdTaxiEvent.TIMESTAMP, new REXPString(timestamp));
-    rlist.put(FcdTaxiEvent.LONGITUDE, new REXPDouble(longitude));
-    rlist.put(FcdTaxiEvent.LATITUDE, new REXPDouble(latitude));
-    rlist.put(FcdTaxiEvent.ALTITUDE, new REXPDouble(altitude));
-    rlist.put(FcdTaxiEvent.SPEED, new REXPDouble(speed));
-    rlist.put(FcdTaxiEvent.ORIENTATION, new REXPDouble(orientation));
-    rlist.put(FcdTaxiEvent.TRANSFER, new REXPInteger(transfer));
+    rlist.put(DEVICE_ID, new REXPInteger(deviceId));
+    rlist.put(TIMESTAMP, new REXPString(timestamp));
+    rlist.put(LONGITUDE, new REXPDouble(longitude));
+    rlist.put(LATITUDE, new REXPDouble(latitude));
+    rlist.put(ALTITUDE, new REXPDouble(altitude));
+    rlist.put(SPEED, new REXPDouble(speed));
+    rlist.put(ORIENTATION, new REXPDouble(orientation));
+    rlist.put(TRANSFER, new REXPInteger(transfer));
     
-    System.out.println("deviceid in Rlist: " + rlist.at(FcdTaxiEvent.DEVICE_ID).length());
+    System.out.println("deviceid in Rlist: " + rlist.at(DEVICE_ID).length());
     
     return rlist;
   }
@@ -306,18 +317,18 @@ public class RUtil {
   public static void createFcdTaxiEventsFromRList(RList rlist,
       Collector<Tuple9<Integer,String,Double,Double,Double,Double,Double,Integer,String>> out) throws REXPMismatchException 
   {
-    int size = rlist.at(FcdTaxiEvent.DEVICE_ID).length();
+    int size = rlist.at(DEVICE_ID).length();
     
-    int [] deviceId = rlist.at(FcdTaxiEvent.DEVICE_ID).asIntegers();
+    int [] deviceId = rlist.at(DEVICE_ID).asIntegers();
     System.out.println("deviveId size: " + deviceId.length);
-    String [] timestamp = rlist.at(FcdTaxiEvent.TIMESTAMP).asStrings();       
-    double [] longitude = Arrays.stream(rlist.at(FcdTaxiEvent.LONGITUDE).asStrings()).mapToDouble(x -> Double.parseDouble(x)).toArray();
-    double [] latitude = Arrays.stream(rlist.at(FcdTaxiEvent.LATITUDE).asStrings()).mapToDouble(x -> Double.parseDouble(x)).toArray();
-    double [] altitude = Arrays.stream(rlist.at(FcdTaxiEvent.ALTITUDE).asStrings()).mapToDouble(x -> Double.parseDouble(x)).toArray();
-    double [] speed = rlist.at(FcdTaxiEvent.SPEED).asDoubles();
-    double [] orientation = rlist.at(FcdTaxiEvent.ORIENTATION).asDoubles();
-    int [] transfer = rlist.at(FcdTaxiEvent.TRANSFER).asIntegers();
-    String [] roadSegment = rlist.at(FcdTaxiEvent.ROAD_SEGMENT).asStrings();
+    String [] timestamp = rlist.at(TIMESTAMP).asStrings();       
+    double [] longitude = Arrays.stream(rlist.at(LONGITUDE).asStrings()).mapToDouble(x -> Double.parseDouble(x)).toArray();
+    double [] latitude = Arrays.stream(rlist.at(LATITUDE).asStrings()).mapToDouble(x -> Double.parseDouble(x)).toArray();
+    double [] altitude = Arrays.stream(rlist.at(ALTITUDE).asStrings()).mapToDouble(x -> Double.parseDouble(x)).toArray();
+    double [] speed = rlist.at(SPEED).asDoubles();
+    double [] orientation = rlist.at(ORIENTATION).asDoubles();
+    int [] transfer = rlist.at(TRANSFER).asIntegers();
+    String [] roadSegment = rlist.at(ROAD_SEGMENT).asStrings();
     System.out.println("roadSegment size: " + roadSegment.length);
     
     for (int i = 0; i < size; i++) {  
