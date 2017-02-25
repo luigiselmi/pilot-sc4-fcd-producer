@@ -3,13 +3,12 @@ Pilot SC4 Floating Car Data Applications
 This repository contains Apache Flink programs that produce, consume and process traffic data.
 The producer (FlinkFcdProducer.java) reads the records from a gzipped file in the file system and write them in a Kafka
 topic in binary format (Avro).
-The consumer (FlinkFcdConsumer.java) reads the records from the Kafka topic, separates into cells within a bounding box
+The consumer (FlinkFcdConsumer.java) reads the records from the Kafka topic, separates them into cells within a bounding box
 and finally computes the number of records within each cell in time windows.
 The MapMatch program (FlinkMapMatch.java, work in progress) reads the records from a Kafka topic, separates the records 
 computing their geohash and then matches the coordinates pairs to the road segments. Finally program computes the number 
-of vehicles and the average speed in each road segment within a time window. The road network is extracted from the 
-Open Street Map database. The result of the computation for each road segment, and for all the time interval, is sent
-to a sink (TBD, Elasticsearch or Cassandra).
+of vehicles and the average speed in each road segment within a time window. The result of the computation for each road segment, 
+and for all the time interval, is sent to a sink (TBD, Elasticsearch or Cassandra).
 
 ##Requirements
 
@@ -29,33 +28,34 @@ This component can be run as a Java application passing some arguments to select
 ### Floating Car Data Producer 
 In order to start a producer run the following command
 
-    $ java -jar target/pilot-sc4-fcd-producer-0.1-jar-with-dependencies.jar producer -path <path_to_the_gzipped_file> -topic <a kafka topic>
+    $ java -jar target/pilot-sc4-fcd-applications-0.1-jar-with-dependencies.jar producer -path <path_to_the_gzipped_file> -topic <a kafka topic>
 
-The job can also be started from the Flink JobManager, see the [Flink JobManager Quick Star Setup](https://ci.apache.org/projects/flink/flink-docs-release-1.0/quickstart/setup_quickstart.html) 
+The job can also be started from the Flink JobManager, see the [Flink JobManager Quick Star Setup](https://ci.apache.org/projects/flink/flink-docs-release-1.2/quickstart/setup_quickstart.html#start-a-local-flink-cluster) 
 to learn how to do it. Once Flink is started you can submit a job uploading the project jar file and setting the following parameters
 
-    Entry Class: eu.bde.pilot.sc4.fcd.Main
-    Program Arguments: producer --path <path_to_the_gzipped_file> --topic <a kafka topic>
+    Entry Class: eu.bde.pilot.sc4.fcd.FlinkFcdProducer
+    Program Arguments: --path <path_to_the_gzipped_file> --topic <a kafka topic>
 
     
 ### Floating Car Data Consumer
 In order to start a consumer run the following command
 
-    $ java -jar target/pilot-sc4-fcd-producer-0.1-jar-with-dependencies.jar consumer -topic <a kafka topic> -window <seconds>
+    $ java -jar target/pilot-sc4-fcd-applications-0.1-jar-with-dependencies.jar consumer -topic <a kafka topic> -window <seconds>
 
-This job can also be started from the Flink JobManager. You can submit a job uploading the same project jar file and setting the following parameters  
+This job can also be started from the Flink JobManager using the same jar file (you don't have to upload it again) and setting the 
+following parameters  
 
-    Entry Class: eu.bde.pilot.sc4.fcd.Main
-    Program Arguments: consumer --topic <a kafka topic> --window <seconds>
+    Entry Class: eu.bde.pilot.sc4.fcd.FlinkFcdConsumer
+    Program Arguments: --topic <a kafka topic> --window <seconds>
     
 ### Floating Car Data Map-Match
 In order to start the map-match run the following command
 
-    $ java -jar target/pilot-sc4-fcd-producer-0.1-jar-with-dependencies.jar mapmatch -topic <a kafka topic> -window <seconds>
+    $ java -jar target/pilot-sc4-fcd-applications-0.1-jar-with-dependencies.jar mapmatch -topic <a kafka topic> -window <seconds>
 
-You can submit the MapMatch job to the Flink Job manager uploading the jar file and setting the following parameters  
+You can submit the MapMatch job to the Flink Job manager setting the following parameters  
 
-    Entry Class: eu.bde.pilot.sc4.fcd.Main
+    Entry Class: eu.bde.pilot.sc4.fcd.FlinkMapMatch
     Program Arguments: mapmatch --topic <a kafka topic> --window <seconds>
 
 ##Licence
