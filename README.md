@@ -1,4 +1,4 @@
-Pilot SC4 FCD Taxi Historic Data Processment
+Pilot SC4 Floating Car Data Applications
 ===============================================
 This repository contains Apache Flink programs that produce, consume and process traffic data.
 The producer (FlinkFcdProducer.java) reads the records from a gzipped file in the file system and write them in a Kafka
