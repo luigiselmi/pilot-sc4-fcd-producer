@@ -19,6 +19,10 @@ import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer010;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer09;
 import org.apache.flink.util.Collector;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeUtils;
+import org.joda.time.format.DateTimeFormat;
+import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -91,13 +95,13 @@ public class FlinkFcdConsumer {
 	  DataStream<FcdTaxiEvent> events = env.addSource(consumer);
 	
 	  // Counts the events that happen in any cell within the bounding box
-	  DataStream<Tuple3<Integer, Integer, Long>> boxBoundedEvents = events
+	  DataStream<Tuple3<Integer, Integer, String>> boxBoundedEvents = events
 			// match each event within the bounding box to grid cell
 			.map(new GridCellMatcher())
 			// partition by cell
 			.keyBy(0)
 			// build time window
-			.timeWindow(Time.minutes(15))
+			.timeWindow(Time.minutes(TIME_WINDOW_PARAM_VALUE))
 			.apply(new EventCounter());
 	
     
@@ -113,21 +117,23 @@ public class FlinkFcdConsumer {
    */
   public static class EventCounter implements WindowFunction<
 	  Tuple2<Integer, Boolean>,       // input type (cell id, is within bb)
-	  Tuple3<Integer, Integer, Long>, // output type (cell id, counts, window time)
+	  Tuple3<Integer, Integer, String>, // output type (cell id, counts, window time)
 	  Tuple,                          // key type
 	  TimeWindow>                     // window type
 	{
-
+    private static transient DateTimeFormatter timeFormatter =
+        DateTimeFormat.forPattern("yyyy-MM-dd HH:mm:ss");
+    
 	  @SuppressWarnings("unchecked")
 	  @Override
 	  public void apply(
 		  Tuple key,
 		  TimeWindow window,
 		  Iterable<Tuple2<Integer, Boolean>> gridCells,
-		  Collector<Tuple3<Integer, Integer, Long>> out) throws Exception {
+		  Collector<Tuple3<Integer, Integer, String>> out) throws Exception {
 
 		  int cellId = ((Tuple1<Integer>)key).f0;
-		  long windowTime = window.getEnd();
+		  String windowTime = timeFormatter.print(window.getEnd());
 		
 		  // counts all the records from the same cell within the bounding box
 		  // or outside (cell id = 0)

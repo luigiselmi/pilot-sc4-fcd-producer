@@ -40,23 +40,23 @@ to learn how to do it. Once Flink is started you can submit a job uploading the 
 ### Floating Car Data Consumer
 In order to start a consumer run the following command
 
-    $ java -jar target/pilot-sc4-fcd-applications-0.1-jar-with-dependencies.jar consumer -topic <a kafka topic> -window <seconds>
+    $ java -jar target/pilot-sc4-fcd-applications-0.1-jar-with-dependencies.jar consumer -topic <a kafka topic> -window <minutess>
 
 This job can also be started from the Flink JobManager using the same jar file (you don't have to upload it again) and setting the 
 following parameters  
 
     Entry Class: eu.bde.pilot.sc4.fcd.FlinkFcdConsumer
-    Program Arguments: --topic <a kafka topic> --window <seconds>
+    Program Arguments: --topic <a kafka topic> --window <minutes>
     
 ### Floating Car Data Map-Match
 In order to start the map-match run the following command
 
-    $ java -jar target/pilot-sc4-fcd-applications-0.1-jar-with-dependencies.jar mapmatch -topic <a kafka topic> -window <seconds>
+    $ java -jar target/pilot-sc4-fcd-applications-0.1-jar-with-dependencies.jar mapmatch -topic <a kafka topic> -window <minutess>
 
 You can submit the MapMatch job to the Flink Job manager setting the following parameters  
 
     Entry Class: eu.bde.pilot.sc4.fcd.FlinkMapMatch
-    Program Arguments: mapmatch --topic <a kafka topic> --window <seconds>
+    Program Arguments: mapmatch --topic <a kafka topic> --window <minutes>
 
 ## Troubleshooting
 Before submitting a 2nd or more jobs to the Task Manager, be sure to set the number of task slots equal to the number of jobs you want 
