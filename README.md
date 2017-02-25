@@ -59,7 +59,7 @@ You can submit the MapMatch job to the Flink Job manager setting the following p
     Program Arguments: mapmatch --topic <a kafka topic> --window <seconds>
 
 ## Troubleshooting
-Before submitting a 2nd or more jobs to the Task Manager, be sure to set the number of task slots equal to the number of job you want 
+Before submitting a 2nd or more jobs to the Task Manager, be sure to set the number of task slots equal to the number of jobs you want 
 the Task Manager to run. From your Flink installation root folder open conf/flink-conf.yaml and set 
 
     taskmanager.numberOfTaskSlots: 2
