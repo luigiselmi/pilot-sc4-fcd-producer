@@ -3,8 +3,8 @@ Pilot SC4 Floating Car Data Applications
 This repository contains Apache Flink programs that produce, consume and process traffic data.
 The producer (FlinkFcdProducer.java) reads the records from a gzipped file in the file system and write them in a Kafka
 topic in binary format (Avro).
-The consumer (FlinkFcdConsumer.java) reads the records from the Kafka topic, separates them into cells within a bounding box
-and finally computes the number of records within each cell in time windows.
+The consumer (FlinkFcdConsumer.java) reads the records from the Kafka topic, separates them into cells within a bounding box, 
+computes the number of records within each cell in time windows and prints them to stdout
 The MapMatch program (FlinkMapMatch.java, work in progress) reads the records from a Kafka topic, separates the records 
 computing their geohash and then matches the coordinates pairs to the road segments. Finally program computes the number 
 of vehicles and the average speed in each road segment within a time window. The result of the computation for each road segment, 
@@ -57,6 +57,14 @@ You can submit the MapMatch job to the Flink Job manager setting the following p
 
     Entry Class: eu.bde.pilot.sc4.fcd.FlinkMapMatch
     Program Arguments: mapmatch --topic <a kafka topic> --window <seconds>
+
+## Troubleshooting
+Before submitting a 2nd or more jobs to the Task Manager, be sure to set the number of task slots equal to the number of job you want 
+the Task Manager to run. From your Flink installation root folder open conf/flink-conf.yaml and set 
+
+    taskmanager.numberOfTaskSlots: 2
+    
+to run the producer and the consumer in local.
 
 ##Licence
 Apache 2.0
