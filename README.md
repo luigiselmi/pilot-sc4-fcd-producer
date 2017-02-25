@@ -51,7 +51,7 @@ following parameters
 ### Floating Car Data Map-Match
 In order to start the map-match run the following command
 
-    $ java -jar target/pilot-sc4-fcd-applications-0.1-jar-with-dependencies.jar mapmatch -topic <a kafka topic> -window <minutess>
+    $ java -jar target/pilot-sc4-fcd-applications-0.1-jar-with-dependencies.jar mapmatch -topic <a kafka topic> -window <minutes>
 
 You can submit the MapMatch job to the Flink Job manager setting the following parameters  
 
