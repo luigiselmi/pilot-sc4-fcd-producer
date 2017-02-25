@@ -25,13 +25,13 @@ under the License.
 	<version>0.1</version>
 	<packaging>jar</packaging>
 
-	<name>Flink Quickstart Job</name>
-	<url>http://www.myorganization.org</url>
+	<name>Flink Floating Car Data Applications</name>
+	<url>https://www.iais.fraunhofer.de/</url>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<flink.version>1.2.0</flink.version>
-		<main.class>eu.bde.pilot.sc4.fcd.FcdProducer</main.class>
+		<main.class>eu.bde.pilot.sc4.fcd.Main</main.class>
 	</properties>
 
 	<repositories>
