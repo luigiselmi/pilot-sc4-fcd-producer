@@ -6,7 +6,17 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer010;
 
-
+/**
+ * This class provides the Flink execution plan for the ingestion of historical 
+ * floating car data from the file system.
+ * Flink subtasks list:
+ * 
+ * 1) source(), reads the records from the file system
+ * 2) sink(), sends the records into a Kafka topic
+ *  
+ * @author Luigi Selmi
+ *
+ */
 public class FlinkFcdProducer {
 
   private static final String KAFKA_BROKER = "localhost:9092";
@@ -14,7 +24,11 @@ public class FlinkFcdProducer {
   public static void main(String[] args) throws Exception {
 
     ParameterTool params = ParameterTool.fromArgs(args);
-    String input = params.getRequired("input"); //path to the data file
+    if (params.getNumberOfParameters() < 2) {
+      throw new IllegalArgumentException("The application needs two arguments: the path of the file from which it has to \n"
+          + "fetch the data, and the Kafka topic to which it has to send the records. \n");
+    }
+    String path = params.getRequired("path"); //path to the data file
     String topic = params.getRequired("topic");
 
     final int maxEventDelay = 60;       // events are out of order by max 60 seconds
@@ -24,10 +38,10 @@ public class FlinkFcdProducer {
     StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
     env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
 
-    // Start the data generator
-    DataStream<FcdTaxiEvent> taxiEventStream = env.addSource(new FcdTaxiSource(input, maxEventDelay, servingSpeedFactor));
+    // 1) source(), start the data generator
+    DataStream<FcdTaxiEvent> taxiEventStream = env.addSource(new FcdTaxiSource(path, maxEventDelay, servingSpeedFactor));
     
- // 2) Write the data to a Kafka topic (sink) using the avro binary format
+    // 2) sink(), write the data to a Kafka topic (sink) using the avro binary format
     FlinkKafkaProducer010<FcdTaxiEvent> producer = new FlinkKafkaProducer010<FcdTaxiEvent>(
         KAFKA_BROKER,
         topic,

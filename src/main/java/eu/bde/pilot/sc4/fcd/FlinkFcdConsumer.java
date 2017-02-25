@@ -27,7 +27,21 @@ import com.google.common.io.Resources;
 import eu.bde.pilot.sc4.utils.GeoUtils;
 
 
-
+/**
+ * This class provides the execution plan of a Flink job. It reads the records
+ * from a Kafka topic, determines from which cells the message were originated
+ * within a bounding box, split the data according to the cell number and 
+ * counts the number of events in each cell (records in a time window)
+ * Flink subtasks list:
+ * 1) source(), reads the data from a Kafka topic
+ * 2) map(), computes the cell in which the records are originated
+ * 3) keyBy(cell number).window(5 min.).apply(average_speed), makes one partition 
+ *    for each cell, computes the number of records in each cell within the time window 
+ * 4) sink(), print the data
+ *  
+ * @author Luigi Selmi
+ *
+ */
 public class FlinkFcdConsumer {
 	
   private static String KAFKA_TOPIC_PARAM_NAME = "topic";
@@ -41,9 +55,9 @@ public class FlinkFcdConsumer {
 	  
 	ParameterTool parameter = ParameterTool.fromArgs(args);
     
-    if (parameter.getNumberOfParameters() < 2) {
-      throw new IllegalArgumentException("The application needs two arguments. The first is the name of the kafka topic from which it has to \n"
-          + "fetch the data. The second argument is the size of the window, in seconds, to which the aggregation function must be applied. \n");
+    if (parameter.getNumberOfParameters() < 3) {
+      throw new IllegalArgumentException("The application needs two arguments, the name of the kafka topic from which it has to \n"
+          + "fetch the data, and the size of the window, in seconds. \n");
     }
     
     KAFKA_TOPIC_PARAM_VALUE = parameter.get(KAFKA_TOPIC_PARAM_NAME);

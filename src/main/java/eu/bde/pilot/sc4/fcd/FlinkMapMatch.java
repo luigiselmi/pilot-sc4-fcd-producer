@@ -23,16 +23,15 @@ import eu.bde.pilot.sc4.utils.MapMatch;
 
 
 /**
- * This class provides the execution plan for the map matching of taxis to the road segments.
+ * This class provides the execution plan for the map matching of taxis 
+ * to the road segments.
  * Flink subtasks list:
- * source(), read the data from the file system
- * 
- * 1) mapGeohash(), compute the geohash from the coordinates pair
- * 2) keyBy(geohash).window(5 min.).apply(mapMatch()), map-match 
+ * 1) source(), reads the records from the file system
+ * 2) mapGeohash(), compute the geohash from the coordinates pair
+ * 3) keyBy(geohash).window(5 min.).apply(mapMatch()), map-match 
  *    the coordinates' pairs within a time window
- * 3) KeyBy(road_segment).apply(average speed, flow)
- * 
- * sink(), store in Kafka topics (one for each road segment)
+ * 4) KeyBy(road_segment).apply(average speed, flow)
+ * 5) sink(), store in Kafka topics (one for each road segment)
  *  
  * @author Luigi Selmi
  *
