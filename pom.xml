@@ -21,7 +21,7 @@ under the License.
 	<modelVersion>4.0.0</modelVersion>
 	
 	<groupId>sc4pilot</groupId>
-	<artifactId>pilot-sc4-fcd-producer</artifactId>
+	<artifactId>pilot-sc4-fcd-applications</artifactId>
 	<version>0.1</version>
 	<packaging>jar</packaging>
 
