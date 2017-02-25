@@ -55,7 +55,7 @@ public class FlinkFcdConsumer {
 	  
 	ParameterTool parameter = ParameterTool.fromArgs(args);
     
-    if (parameter.getNumberOfParameters() < 3) {
+    if (parameter.getNumberOfParameters() < 2) {
       throw new IllegalArgumentException("The application needs two arguments, the name of the kafka topic from which it has to \n"
           + "fetch the data, and the size of the window, in seconds. \n");
     }
