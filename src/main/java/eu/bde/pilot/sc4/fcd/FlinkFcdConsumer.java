@@ -28,14 +28,14 @@ import eu.bde.pilot.sc4.utils.GeoUtils;
 
 
 
-public class FcdConsumer {
+public class FlinkFcdConsumer {
 	
   private static String KAFKA_TOPIC_PARAM_NAME = "topic";
   private static String KAFKA_TOPIC_PARAM_VALUE = null;
   private static String TIME_WINDOW_PARAM_NAME = "window";
   private static int TIME_WINDOW_PARAM_VALUE = 0;
   private static final int MAX_EVENT_DELAY = 60; // events are at most 60 sec out-of-order.
-  private static final Logger log = LoggerFactory.getLogger(FcdConsumer.class);
+  private static final Logger log = LoggerFactory.getLogger(FlinkFcdConsumer.class);
 
   public static void main(String[] args) throws Exception {
 	  
@@ -70,14 +70,14 @@ public class FcdConsumer {
 			new FcdTaxiSchema(),
 			properties);
 	
-	// assign a timestamp extractor to the consumer
-	consumer.assignTimestampsAndWatermarks(new FcdTaxiTSExtractor());
+	  // assign a timestamp extractor to the consumer
+	  consumer.assignTimestampsAndWatermarks(new FcdTaxiTSExtractor());
 	
-	// create a FCD event data stream
-	DataStream<FcdTaxiEvent> events = env.addSource(consumer);
+	  // create a FCD event data stream
+	  DataStream<FcdTaxiEvent> events = env.addSource(consumer);
 	
-	// Counts the events that happen in any cell within the bounding box
-	DataStream<Tuple3<Integer, Integer, Long>> boxBoundedEvents = events
+	  // Counts the events that happen in any cell within the bounding box
+	  DataStream<Tuple3<Integer, Integer, Long>> boxBoundedEvents = events
 			// match each event within the bounding box to grid cell
 			.map(new GridCellMatcher())
 			// partition by cell
@@ -87,7 +87,7 @@ public class FcdConsumer {
 			.apply(new EventCounter());
 	
     
-	boxBoundedEvents.print();
+	  boxBoundedEvents.print();
     
     env.execute("Read Historic Floating Cars Data from Kafka");
   

@@ -16,10 +16,10 @@ public class Main {
         try {
 		    switch (args[0]) {
 		        case "producer":
-		            FlinkMapMatch.main(args);
+		            FlinkFcdProducer.main(args);
 		            break;
 		        case "consumer":
-		            FcdConsumer.main(args);
+		            FlinkFcdConsumer.main(args);
 		            break;
 		        default:
 		            throw new IllegalArgumentException("Don't know how to do " + args[0]);
