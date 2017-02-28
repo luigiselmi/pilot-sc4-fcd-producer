@@ -2,7 +2,8 @@
 
 # ignore the target folder build by maven from the source code
 target/
-
+data/db/virtuoso*
+data/db/http*
 # ignore the following hidden files and folders
 .classpath
 .project
