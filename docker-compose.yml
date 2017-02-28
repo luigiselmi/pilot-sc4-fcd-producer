@@ -2,7 +2,7 @@ version: '2'
 
 services:
 
-  zookeeper-service-1:
+  zookeeper1:
     image: zookeeper
     container_name: zookeeper1
     restart: unless_stopped
@@ -17,7 +17,7 @@ services:
     networks:
       - pilot-sc4
 
-  kafka-service-1:
+  kafka1:
     image: wurstmeister/kafka
     container_name: kafka1 
     restart: unless_stopped
