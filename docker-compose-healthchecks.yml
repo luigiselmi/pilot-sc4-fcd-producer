@@ -1,0 +1,139 @@
+version: '2.1'
+services:
+    namenode:
+        image: bde2020/hadoop-namenode:1.1.0-hadoop2.7.1-java8
+        hostname: namenode
+        container_name: namenode
+        environment:
+              CSS_SOURCE: "hadoop"
+              CLUSTER_NAME: test
+              VIRTUAL_HOST: hdfs.big-data-europe.local
+        env_file:
+            - ./config/hadoop/hadoop.env
+        volumes:
+            - ./data/hadoop/namenode:/hadoop/dfs/name
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost:50070"]
+            interval: 5s
+            timeout: 3s
+            retries: 10
+        expose:
+            - "50070"
+    datanode:
+        image: bde2020/hadoop-datanode:1.1.0-hadoop2.7.1-java8
+        hostname: datanode
+        container_name: datanode
+        environment:
+              CSS_SOURCE: "hadoop"
+              CLUSTER_NAME: test
+              VIRTUAL_HOST: hdfs-datanode.big-data-europe.aksw.org
+              VIRTUAL_PORT: "50075"
+        env_file:
+            - ./config/hadoop/hadoop.env
+        volumes:
+            - ./data/hadoop/datanode:/hadoop/dfs/data
+        depends_on:
+          namenode:
+            condition: service_healthy
+        healthcheck:
+            test: ["CMD", "curl", "-f", "http://localhost:50075"]
+            interval: 5s
+            timeout: 3s
+            retries: 10
+        expose:
+            - "50075"
+    filebrowser:
+        image: bde2020/hdfs-filebrowser
+        hostname: filebrowser
+        container_name: filebrowser
+        expose:
+            - "8088"
+        environment:
+              NAMENODE_HOST: namenode
+              VIRTUAL_HOST: hue.big-data-europe.aksw.org
+              VIRTUAL_PORT: "8088"
+        depends_on:
+          namenode:
+            condition: service_healthy
+          datanode:
+            condition: service_healthy
+    flink-master:
+        image: bde2020/flink-master:1.1.4-hadoop2.7
+        hostname: flink-master
+        container_name: flink-master
+        environment:
+              CSS_SOURCE: "flink-dashboard"
+              VIRTUAL_HOST: flink-master.big-data-europe.aksw.org
+              VIRTUAL_PORT: "8081"
+        volumes:
+              - ./data/flink-master:/data
+        env_file:
+              - ./config/hadoop/hadoop.env
+        depends_on:
+            namenode:
+                condition: service_healthy
+            datanode:
+                condition: service_healthy
+        healthcheck:
+              test: ["CMD", "curl", "-f", "http://localhost:8081"]
+              interval: 5s
+              timeout: 3s
+              retries: 10
+    flink-worker:
+        image: bde2020/flink-worker:1.1.4-hadoop2.7
+        hostname: flink-worker
+        container_name: flink-worker
+        environment:
+              FLINK_MASTER_PORT_6123_TCP_ADDR: "flink-master"
+              CSS_SOURCE: "flink-master"
+              VIRTUAL_HOST: flink-worker.big-data-europe.aksw.org
+              VIRTUAL_PORT: "8080"
+        depends_on:
+            flink-master:
+              condition: service_healthy
+        healthcheck:
+              test: ["CMD", "curl", "-f", "http://localhost:8080"]
+              interval: 5s
+              timeout: 3s
+              retries: 10
+    data-stub:
+        image: earthquakesan/bigknob
+        hostname: bigknob
+        container_name: bigknob
+        depends_on:
+            namenode:
+              condition: service_healthy
+            datanode:
+              condition: service_healthy
+            flink-master:
+              condition: service_healthy
+        environment:
+              VIRTUAL_HOST: bigknob.big-data-europe.aksw.org
+              VIRTUAL_PORT: "8000"
+    producer:
+        build:
+            context: .
+            dockerfile: producer.dockerfile
+        container_name: producer
+        environment:
+              HDFS_URL: hdfs://namenode:8020
+        depends_on:
+          data-stub:
+            condition: service_healthy
+    integratorui:
+      image: bde2020/integrator-ui:latest
+      hostname: integratorui
+      container_name: integratorui
+      volumes:
+        - ./config/integrator:/app/config
+      environment:
+        VIRTUAL_HOST: demo.big-data-europe.aksw.org
+
+    csswrapper:
+      image: bde2020/nginx-proxy-with-css
+      hostname: csswrapper
+      container_name: csswrapper
+      ports:
+        - 80:80
+      volumes:
+        - /var/run/docker.sock:/tmp/docker.sock:ro
