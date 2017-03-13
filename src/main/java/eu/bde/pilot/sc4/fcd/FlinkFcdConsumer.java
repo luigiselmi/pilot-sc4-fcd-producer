@@ -38,8 +38,8 @@ import eu.bde.pilot.sc4.utils.GeoUtils;
  * counts the number of events in each cell (records in a time window)
  * Flink subtasks list:
  * 1) source(), reads the data from a Kafka topic
- * 2) map(), computes the cell in which the records are originated
- * 3) keyBy(cell number).window(5 min.).apply(average_speed), makes one partition 
+ * 2) mapToGrid(), computes the cell in which the records are originated
+ * 3) keyBy(cell number).window(5 min.).apply(count_events), makes one partition 
  *    for each cell, computes the number of records in each cell within the time window 
  * 4) sink(), print the data
  *  
