@@ -5,7 +5,6 @@ services:
   zookeeper1:
     image: zookeeper
     container_name: zookeeper1
-    restart: unless_stopped
     ports:
       - "2181:2181"
     environment:
@@ -20,7 +19,6 @@ services:
   kafka1:
     image: wurstmeister/kafka
     container_name: kafka1 
-    restart: unless_stopped
     ports:
       - "9092:9092"
     environment:
@@ -58,24 +56,29 @@ services:
   ###
   # mu.semte.ch stack
   ###
+
   integratorui:
     image: bde2020/integrator-ui:0.4.3
     volumes:
       - ./config/integrator:/app/config
     environment:
       VIRTUAL_HOST: example.big-data-europe.eu
+
   monitor:
     image: bde2020/pipeline-monitor-frontend:0.2.2
     links:
       - identifier:backend
     environment:
       VIRTUAL_HOST: monitor.example.big-data-europe.eu
+
   identifier:
     image: semtech/mu-identifier:1.0.0
+
   dispatcher:
     image: semtech/mu-dispatcher:1.0.1
     volumes:
       - ./config:/config
+
   database:
     image: tenforce/virtuoso:1.0.0-virtuoso7.2.2
     environment:
@@ -84,8 +87,10 @@ services:
       - "8890:8890"
     volumes:
       - ./data/db:/data
+
   pipeline:
     image: bde2020/mu-pipeline-service:0.1.0
+
   initdaemon:
     image: bde2020/mu-init-daemon-service:0.1.0
 
