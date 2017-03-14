@@ -3,9 +3,42 @@
     "id": 1,
     "type": "user-interfaces",
     "attributes": {
-      "label": "Monitor",
-      "base-url": "http://monitor.example.big-data-europe.eu"
+      "label": "Apache Flink Dashboard",
+      "base-url": "http://flink-master.big-data-europe.local"
+    }
+  },
+  {
+    "id": 2,
+    "type": "user-interfaces",
+    "attributes": {
+      "label": "HDFS Namenode",
+      "base-url": "http://hdfs-namenode.big-data-europe.local"
+    }
+  },
+  {
+    "id": 3,
+    "type": "user-interfaces",
+    "attributes": {
+      "label": "HDFS Datanode",
+      "base-url": "http://hdfs-datanode.big-data-europe.local"
+    }
+  },
+  {
+    "id": 4,
+    "type": "user-interfaces",
+    "attributes": {
+      "label": "Hue",
+      "base-url": "http://hue.big-data-europe.local"
+    }
+  },
+  {
+    "id": 5,
+    "type": "user-interfaces",
+    "attributes": {
+      "label": "PushMe",
+      "base-url": "http://bigknob.big-data-europe.local/index/"
     }
   }
+
 ]
 }
