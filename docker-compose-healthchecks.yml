@@ -1,7 +1,9 @@
 version: '2.1'
 services:
     zookeeper:
-        image: bde2020/sc4-zookeeper
+        build:
+            context: ./sc4-zookeeper
+        image: bde2020/pilot-sc4-zookeeper
         hostname: zookeeper
         container_name: zookeeper
         environment:
@@ -9,13 +11,17 @@ services:
             - DELAY=5
         healthcheck:
             test: /healthcheck
-            interval: 5s
+            interval: 10s
             timeout: 3s
             retries: 2
         expose:
             - "2181"
+        ports:
+            - "2181:2181"
     kafka:
-        image: bde2020/sc4-kafka
+        build:
+            context: ./sc4-kafka
+        image: bde2020/pilot-sc4-kafka
         hostname: kafka
         container_name: kafka
         environment:
