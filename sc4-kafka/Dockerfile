@@ -8,6 +8,7 @@ RUN chmod +x /wait-for-step.sh
 RUN chmod +x /execute-step.sh
 RUN chmod +x /finish-step.sh
 
+COPY healthcheck /
 COPY kafka-startup.sh /
 
 EXPOSE 9092

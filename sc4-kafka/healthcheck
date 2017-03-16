@@ -2,7 +2,8 @@
 
 set -e
 
-export R=$( (exit 1) && echo ok )
+export R=$( (nc -z localhost 9092) && echo ok )
+
 if [[ "$R" == "ok" ]]; then
     exit 0
 else
