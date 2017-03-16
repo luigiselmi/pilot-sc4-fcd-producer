@@ -97,6 +97,9 @@ services:
         image: bde2020/flink-master:1.1.4-hadoop2.7
         hostname: flink-master
         container_name: flink-master
+        expose:
+              - "8081"
+              - "8080"
         environment:
               CSS_SOURCE: "flink-dashboard"
               VIRTUAL_HOST: flink-master.big-data-europe.local
