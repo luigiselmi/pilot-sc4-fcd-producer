@@ -51,7 +51,6 @@ services:
         container_name: datanode
         environment:
               CSS_SOURCE: "hadoop"
-              CLUSTER_NAME: test
               VIRTUAL_HOST: hdfs-datanode.big-data-europe.local
               VIRTUAL_PORT: "50075"
         env_file:

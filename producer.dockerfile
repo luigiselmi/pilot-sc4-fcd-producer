@@ -14,4 +14,5 @@ MAINTAINER Luigi Selmi <luigiselmi@gmail.com>
 
 ENV FLINK_APPLICATION_JAR_NAME pilot-sc4-fcd-applications-0.1-jar-with-dependencies
 ENV FLINK_APPLICATION_MAIN_CLASS eu.bde.pilot.sc4.fcd.FlinkFcdProducer
-ENV FLINK_APPLICATION_ARGS "--path /datasets/fcd-sample-data.csv.gz --topic taxi"
+#ENV FLINK_APPLICATION_ARGS "--path /datasets/fcd-sample-data.csv.gz --topic taxi"
+ENV FLINK_APPLICATION_ARGS "--path hdfs://namenode:8020/user/hue/fcd-sample-data.csv.gz --topic taxi"
