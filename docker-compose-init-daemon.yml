@@ -9,11 +9,8 @@ services:
         environment:
             - MYID=1
             - DELAY=5
-        healthcheck:
-            test: /healthcheck
-            interval: 10s
-            timeout: 3s
-            retries: 2
+            - INIT_DAEMON_STEP=setup_zookeeper
+            - ENABLE_INIT_DAEMON = "true"
         expose:
             - "2181"
         ports:
@@ -26,34 +23,27 @@ services:
         container_name: kafka
         environment:
             - ZOOKEEPER_SERVERS=zookeeper:2181
-        healthcheck:
-            test: /healthcheck
-            interval: 5s
-            timeout: 3s
-            retries: 2
+            - INIT_DAEMON_STEP=setup_kafka
+            - ENABLE_INIT_DAEMON = "true"
         depends_on:
-            zookeeper:
-                condition: service_healthy
+            - zookeeper
         expose:
             - "9092"
+
     namenode:
-        image: bde2020/hadoop-namenode:1.1.0-hadoop2.7.1-java8
-        hostname: namenode
-        container_name: namenode
-        environment:
+      image: bde2020/hadoop-namenode:1.1.0-hadoop2.7.1-java8
+      hostname: namenode
+      container_name: namenode
+      environment:
               CSS_SOURCE: "hadoop"
               CLUSTER_NAME: test
+              INIT_DAEMON_STEP: "setup_hdfs"
               VIRTUAL_HOST: hdfs-namenode.big-data-europe.local
-        env_file:
+      env_file:
             - ./config/hadoop/hadoop.env
-        volumes:
+      volumes:
             - ./data/hadoop/namenode:/hadoop/dfs/name
-        healthcheck:
-            test: ["CMD", "curl", "-f", "http://localhost:50070"]
-            interval: 5s
-            timeout: 3s
-            retries: 10
-        expose:
+      expose:
             - "50070"
     datanode:
         image: bde2020/hadoop-datanode:1.1.0-hadoop2.7.1-java8
@@ -69,8 +59,7 @@ services:
         volumes:
             - ./data/hadoop/datanode:/hadoop/dfs/data
         depends_on:
-          namenode:
-            condition: service_healthy
+            - namenode
         expose:
             - "50075"
     resourcemanager:
@@ -87,10 +76,8 @@ services:
         env_file:
             - ./config/hadoop/hadoop.env
         depends_on:
-            namenode:
-                condition: service_healthy
-            datanode:
-                condition: service_healthy
+              - namenode
+              - datanode
     historyserver:
         image: bde2020/hadoop-historyserver:1.1.0-hadoop2.7.1-java8
         hostname: historyserver
@@ -104,10 +91,8 @@ services:
             VIRTUAL_PORT: "8188"
             CSS_SOURCE: "hadoop-history-server"
         depends_on:
-            namenode:
-              condition: service_healthy
-            datanode:
-              condition: service_healthy
+              - namenode
+              - datanode
     nodemanager:
         image: bde2020/hadoop-nodemanager:1.1.0-hadoop2.7.1-java8
         hostname: nodemanager
@@ -121,10 +106,8 @@ services:
         env_file:
             - ./config/hadoop/hadoop.env
         depends_on:
-            namenode:
-              condition: service_healthy
-            datanode:
-              condition: service_healthy
+              - namenode
+              - datanode
     filebrowser:
         image: bde2020/hdfs-filebrowser
         hostname: filebrowser
@@ -136,10 +119,8 @@ services:
               VIRTUAL_HOST: hue.big-data-europe.local
               VIRTUAL_PORT: "8088"
         depends_on:
-          namenode:
-            condition: service_healthy
-          datanode:
-            condition: service_healthy
+            - namenode
+            - datanode
     flink-master:
         image: bde2020/flink-master:1.1.4-hadoop2.7
         hostname: flink-master
@@ -149,6 +130,7 @@ services:
               - "8080"
         environment:
               CSS_SOURCE: "flink-dashboard"
+              INIT_DAEMON_STEP: "setup_flink"
               VIRTUAL_HOST: flink-master.big-data-europe.local
               VIRTUAL_PORT: "8081"
         volumes:
@@ -156,15 +138,8 @@ services:
         env_file:
               - ./config/hadoop/hadoop.env
         depends_on:
-            namenode:
-                condition: service_healthy
-            datanode:
-                condition: service_healthy
-        healthcheck:
-              test: ["CMD", "curl", "-f", "http://localhost:8081"]
-              interval: 5s
-              timeout: 3s
-              retries: 10
+              - namenode
+              - datanode
     flink-worker:
         image: bde2020/flink-worker:1.1.4-hadoop2.7
         hostname: flink-worker
@@ -175,55 +150,90 @@ services:
               VIRTUAL_HOST: flink-worker.big-data-europe.local
               VIRTUAL_PORT: "8080"
         depends_on:
-            flink-master:
-              condition: service_healthy
-        healthcheck:
-              test: ["CMD", "curl", "-f", "http://localhost:8080"]
-              interval: 5s
-              timeout: 3s
-              retries: 10
-    data-stub:
-        image: earthquakesan/bigknob
-        hostname: bigknob
-        container_name: bigknob
-        depends_on:
-            namenode:
-              condition: service_healthy
-            datanode:
-              condition: service_healthy
-            flink-master:
-              condition: service_healthy
-            zookeeper:
-              condition: service_healthy
-            kafka:
-              condition: service_healthy
-        environment:
-              VIRTUAL_HOST: bigknob.big-data-europe.local
-              VIRTUAL_PORT: "8000"
-    producer-job:
+              - flink-master
+    producer:
         build:
             context: .
             dockerfile: producer.dockerfile
-        container_name: producer-job
+        container_name: producer
         environment:
               HDFS_URL: hdfs://namenode:8020
+              INIT_DAEMON_STEP: floating_producer
+              FLINK_MASTER_PORT_6123_TCP_ADDR: "flink-master"
+              FLINK_MASTER_PORT_6123_TCP_PORT: "6123"
+        env_file:
+              - ./config/hadoop/hadoop.env
+    consumer:
+        build:
+            context: .
+            dockerfile: consumer.dockerfile
+        container_name: consumer
+        environment:
+              HDFS_URL: hdfs://namenode:8020
+              INIT_DAEMON_STEP: floating_consumer
+              FLINK_MASTER_PORT_6123_TCP_ADDR: "flink-master"
+              FLINK_MASTER_PORT_6123_TCP_PORT: "6123"
+        env_file:
+              - ./config/hadoop/hadoop.env
+    monitor:
+        image: bde2020/pipeline-monitor-frontend:0.1.0
+        hostname: monitor
+        container_name: monitor
+        links:
+            - identifier:backend
         depends_on:
-          data-stub:
-            condition: service_healthy
+            - identifier
+        environment:
+              VIRTUAL_HOST: monitor.big-data-europe.local
+
+    identifier:
+        image: semtech/mu-identifier:1.0.0
+        hostname: identifier
+        container_name: identifier
+
+    dispatcher:
+        image: semtech/mu-dispatcher:1.0.1
+        hostname: dispatcher
+        container_name: dispatcher
+        volumes:
+            - ./config:/config
+
+    database:
+        image: tenforce/virtuoso:1.0.0-virtuoso7.2.2
+        hostname: database
+        container_name: database
+        environment:
+            - SPARQL_UPDATE=true
+            - DEFAULT_GRAPH=http://mu.semte.ch/application
+            - VIRTUAL_HOST=virtuoso.big-data-europe.local
+            - VIRTUAL_PORT=8890
+        volumes:
+            - ./data/db:/data
+
+    pipeline:
+        image: bde2020/mu-pipeline-service:0.1.0
+        hostname: pipeline
+        container_name: pipeline
+
+    initdaemon:
+        image: bde2020/mu-init-daemon-service:0.1.0
+        hostname: initdaemon
+        container_name: initdaemon
+
     integratorui:
-      image: bde2020/integrator-ui:latest
-      hostname: integratorui
-      container_name: integratorui
-      volumes:
-        - ./config/integrator:/app/config
-      environment:
-        VIRTUAL_HOST: demo.big-data-europe.local
+        image: bde2020/integrator-ui:latest
+        hostname: integratorui
+        container_name: integratorui
+        volumes:
+            - ./config/integrator:/app/config
+        environment:
+            VIRTUAL_HOST: demo.big-data-europe.local
 
     csswrapper:
-      image: bde2020/nginx-proxy-with-css
-      hostname: csswrapper
-      container_name: csswrapper
-      ports:
-        - 80:80
-      volumes:
-        - /var/run/docker.sock:/tmp/docker.sock:ro
+        image: bde2020/nginx-proxy-with-css
+        hostname: csswrapper
+        container_name: csswrapper
+        ports:
+            - 80:80
+        volumes:
+            - /var/run/docker.sock:/tmp/docker.sock:ro
