@@ -1,73 +1,82 @@
-@prefix rdf:	<http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
-@prefix ns1:	<http://purl.org/spar/pwo/> .
-<http://www.big-data-europe.eu/data/workflows/58D3D3799F66F90008000001>	rdf:type	ns1:Workflow .
-@prefix ns2:	<http://mu.semte.ch/vocabularies/core/> .
-<http://www.big-data-europe.eu/data/workflows/58D3D3799F66F90008000001>	ns2:uuid	"58D3D3799F66F90008000001" .
-@prefix ns3:	<http://purl.org/dc/terms/> .
-<http://www.big-data-europe.eu/data/workflows/58D3D3799F66F90008000001>	ns3:title	"Pilot SC4 Start up" ;
-	ns3:description	"This pipeline defines the initialization steps for the SC4 pilot" ;
-	ns1:hasStep	<http://www.big-data-europe.eu/data/steps/58D3D6F39F66F90008000009> ,
-		<http://www.big-data-europe.eu/data/steps/58D3D3969F66F90008000002> ,
-		<http://www.big-data-europe.eu/data/steps/58D3D3AB9F66F90008000003> ,
-		<http://www.big-data-europe.eu/data/steps/58D3D4139F66F90008000006> ,
-		<http://www.big-data-europe.eu/data/steps/58D3D4DA9F66F90008000007> ,
-		<http://www.big-data-europe.eu/data/steps/58D3D5819F66F90008000008> ,
-		<http://www.big-data-europe.eu/data/steps/58D3D3F29F66F90008000005> ,
-		<http://www.big-data-europe.eu/data/steps/58D3D3CE9F66F90008000004> .
-<http://www.big-data-europe.eu/data/steps/58D3D5819F66F90008000008>	rdf:type	ns1:Step ;
-	ns2:uuid	"58D3D5819F66F90008000008" ;
-	ns3:title	"Floating Car Data Consumer" ;
-	ns3:description	"Flink map-reduce computation (consumer) reads records from the Kafka topics, separates them into cells within a bounding box, computes the number of records within each cell in time windows and prints them to stdout." .
-@prefix ns4:	<http://www.big-data-europe.eu/vocabularies/pipeline/> .
-<http://www.big-data-europe.eu/data/steps/58D3D5819F66F90008000008>	ns4:code	"floating_consumer" ;
-	ns4:order	6 ;
-	ns4:status	"not_started" .
+@prefix rdf:  <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix ns1:  <http://purl.org/spar/pwo/> .
+@prefix ns2:  <http://mu.semte.ch/vocabularies/core/> .
+@prefix dcterms:  <http://purl.org/dc/terms/> .
+@prefix ns4:  <http://www.big-data-europe.eu/vocabularies/pipeline/> .
+
+<http://www.big-data-europe.eu/data/workflows/58D3D3799F66F90008000001>	rdf:type	ns1:Workflow ;
+                     ns2:uuid "58D3D3799F66F90008000001" ;
+                     dcterms:title "Pilot SC4 Start up" ;
+                     dcterms:description "This pipeline defines the initialization steps for the SC4 pilot" ;
+                     ns1:hasStep <http://www.big-data-europe.eu/data/steps/58D3D6F39F66F90008000009> ,
+                                 <http://www.big-data-europe.eu/data/steps/58D3D3969F66F90008000002> ,
+                                 <http://www.big-data-europe.eu/data/steps/58D3D3AB9F66F90008000003> ,
+                                 <http://www.big-data-europe.eu/data/steps/58D3D4139F66F90008000006> ,
+                                 <http://www.big-data-europe.eu/data/steps/58D3D4DA9F66F90008000007> ,
+                                 <http://www.big-data-europe.eu/data/steps/58D3D5819F66F90008000008> ,
+                                 <http://www.big-data-europe.eu/data/steps/58D3D3F29F66F90008000005> ,
+                                 <http://www.big-data-europe.eu/data/steps/58D3D3CE9F66F90008000004> .
+
 <http://www.big-data-europe.eu/data/steps/58D3D3969F66F90008000002>	rdf:type	ns1:Step ;
 	ns2:uuid	"58D3D3969F66F90008000002" ;
-	ns3:title	"Zookeeper" ;
-	ns3:description	"Kafka requires Zookeeper for coordination between the brokers." ;
+	dcterms:title	"Zookeeper" ;
+	dcterms:description	"Zookeeper server." ;
 	ns4:code	"setup_zookeeper" ;
 	ns4:order	0 ;
 	ns4:status	"not_started" .
+
 <http://www.big-data-europe.eu/data/steps/58D3D3AB9F66F90008000003>	rdf:type	ns1:Step ;
 	ns2:uuid	"58D3D3AB9F66F90008000003" ;
-	ns3:title	"Kafka" ;
-	ns3:description	"Starts a Kafka broker and create the taxi topic." ;
+	dcterms:title	"Kafka" ;
+	dcterms:description	"Starts a Kafka broker and create a Kafka topic." ;
 	ns4:code	"setup_kafka" ;
 	ns4:order	1 ;
 	ns4:status	"not_started" .
-<http://www.big-data-europe.eu/data/steps/58D3D4139F66F90008000006>	rdf:type	ns1:Step ;
-	ns2:uuid	"58D3D4139F66F90008000006" ;
-	ns3:title	"Setup Flink" ;
-	ns3:description	"Starts the flink manager and workers." ;
-	ns4:code	"setup_flink" ;
-	ns4:order	4 ;
-	ns4:status	"not_started" .
-<http://www.big-data-europe.eu/data/steps/58D3D4DA9F66F90008000007>	rdf:type	ns1:Step ;
-	ns2:uuid	"58D3D4DA9F66F90008000007" ;
-	ns3:title	"Floating Car Data Producer" ;
-	ns3:description	"Flink map-reduce computation (producer) reads the data from HDFS and produces Kafka topics in a consumable format." ;
-	ns4:code	"floating_producer" ;
-	ns4:order	5 ;
-	ns4:status	"not_started" .
+
 <http://www.big-data-europe.eu/data/steps/58D3D3CE9F66F90008000004>	rdf:type	ns1:Step ;
 	ns2:uuid	"58D3D3CE9F66F90008000004" ;
-	ns3:title	"Setup HDFS" ;
-	ns3:description	"Booting of the HDFS cluster." ;
+	dcterms:title	"Setup HDFS" ;
+	dcterms:description	"Booting of the HDFS cluster." ;
 	ns4:code	"setup_hdfs" ;
 	ns4:order	2 ;
 	ns4:status	"not_started" .
+
 <http://www.big-data-europe.eu/data/steps/58D3D3F29F66F90008000005>	rdf:type	ns1:Step ;
 	ns2:uuid	"58D3D3F29F66F90008000005" ;
-	ns3:title	"Populate HDFS with core data" ;
-	ns3:description	"Please upload the data to the HDFS filesystem.  This is a manual step.  Press finish when you're done." ;
+	dcterms:title	"Populate HDFS with core data" ;
+	dcterms:description	"Please upload the data to the HDFS filesystem.  This is a manual step.  Press finish when you're done." ;
 	ns4:code	"populate_hdfs" ;
 	ns4:order	3 ;
 	ns4:status	"not_started" .
+
+<http://www.big-data-europe.eu/data/steps/58D3D4139F66F90008000006>	rdf:type	ns1:Step ;
+	ns2:uuid	"58D3D4139F66F90008000006" ;
+	dcterms:title	"Setup Flink" ;
+	dcterms:description	"Starts the flink manager and workers." ;
+	ns4:code	"setup_flink" ;
+	ns4:order	4 ;
+	ns4:status	"not_started" .
+
+<http://www.big-data-europe.eu/data/steps/58D3D4DA9F66F90008000007>	rdf:type	ns1:Step ;
+	ns2:uuid	"58D3D4DA9F66F90008000007" ;
+	dcterms:title	"Floating Car Data Producer" ;
+	dcterms:description	"Flink job, reads the data from HDFS and writes it into a Kafka topic (producer)." ;
+	ns4:code	"floating_producer" ;
+	ns4:order	5 ;
+ns4:status "not_started" .
+
+<http://www.big-data-europe.eu/data/steps/58D3D5819F66F90008000008>	rdf:type	ns1:Step ;
+	ns2:uuid	"58D3D5819F66F90008000008" ;
+	dcterms:title	"Floating Car Data Consumer" ;
+	dcterms:description	"Flink job, reads records from a Kafka topic (consumer)." .
+        ns4:code "floating_consumer" ;
+	ns4:order	6 ;
+	ns4:status	"not_started" .
+
 <http://www.big-data-europe.eu/data/steps/58D3D6F39F66F90008000009>	rdf:type	ns1:Step ;
 	ns2:uuid	"58D3D6F39F66F90008000009" ;
-	ns3:title	"Retrieve aggregated content" ;
-	ns3:description	"Download the content from HDFS into a separate location before destroying the pipeline. This is a manual step." ;
+	dcterms:title	"Retrieve aggregated content" ;
+	dcterms:description	"Download the content from HDFS into a separate location before destroying the pipeline. This is a manual step." ;
 	ns4:code	"download_data" ;
 	ns4:order	7 ;
 	ns4:status	"not_started" .
