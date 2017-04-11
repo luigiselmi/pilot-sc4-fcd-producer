@@ -1,6 +1,6 @@
 # from https://github.com/big-data-europe/docker-kafka
 
-FROM bde2020/kafka
+FROM bde2020/kafka:2.11-0.10.2.0
 
 MAINTAINER Karl-Heinz Sylla <karl-heinz.sylla@iais.fraunhofer.de>
 

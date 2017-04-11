@@ -63,13 +63,13 @@
 	dcterms:description	"Flink job, reads the data from HDFS and writes it into a Kafka topic (producer)." ;
 	ns4:code	"floating_producer" ;
 	ns4:order	5 ;
-        ns4:status "not_started" .
+  ns4:status "not_started" .
 
 <http://www.big-data-europe.eu/data/steps/58D3D5819F66F90008000008>	rdf:type	ns1:Step ;
 	ns2:uuid	"58D3D5819F66F90008000008" ;
 	dcterms:title	"Floating Car Data Consumer" ;
 	dcterms:description	"Flink job, reads records from a Kafka topic (consumer)." ;
-        ns4:code "floating_consumer" ;
+  ns4:code "floating_consumer" ;
 	ns4:order	6 ;
 	ns4:status	"not_started" .
 
