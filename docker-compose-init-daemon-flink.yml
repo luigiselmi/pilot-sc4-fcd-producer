@@ -15,6 +15,9 @@ services:
             - "2181"
         ports:
             - "2181:2181"
+        networks:
+            - pilot-sc4-net
+
     kafka:
         build:
             context: ./sc4-kafka
@@ -29,7 +32,9 @@ services:
             - zookeeper
         expose:
             - "9092"
-
+        networks:
+            - pilot-sc4-net
+           
     namenode:
       image: bde2020/hadoop-namenode:1.1.0-hadoop2.7.1-java8
       hostname: namenode
@@ -45,6 +50,9 @@ services:
             - ./data/hadoop/namenode:/hadoop/dfs/name
       expose:
             - "50070"
+      networks:
+            - pilot-sc4-net
+
     datanode:
         image: bde2020/hadoop-datanode:1.1.0-hadoop2.7.1-java8
         hostname: datanode
@@ -61,6 +69,9 @@ services:
             - namenode
         expose:
             - "50075"
+        networks:
+            - pilot-sc4-net
+
     resourcemanager:
         image: bde2020/hadoop-resourcemanager:1.1.0-hadoop2.7.1-java8
         hostname: resourcemanager
@@ -77,6 +88,9 @@ services:
         depends_on:
               - namenode
               - datanode
+        networks:
+              - pilot-sc4-net
+
     historyserver:
         image: bde2020/hadoop-historyserver:1.1.0-hadoop2.7.1-java8
         hostname: historyserver
@@ -92,6 +106,9 @@ services:
         depends_on:
               - namenode
               - datanode
+        networks:
+              - pilot-sc4-net
+
     nodemanager:
         image: bde2020/hadoop-nodemanager:1.1.0-hadoop2.7.1-java8
         hostname: nodemanager
@@ -107,8 +124,11 @@ services:
         depends_on:
               - namenode
               - datanode
+        networks:
+              - pilot-sc4-net
+
     filebrowser:
-        image: bde2020/hdfs-filebrowser
+        image: bde2020/hdfs-filebrowser:latest
         hostname: filebrowser
         container_name: filebrowser
         expose:
@@ -120,11 +140,13 @@ services:
         depends_on:
             - namenode
             - datanode
+        networks:
+            - pilot-sc4-net
+
     flink-master:
-        image: bde2020/flink-master:latest
+        image: bde2020/flink-master:1.2.0-hadoop2.7
         hostname: "flink-master"
         container_name: "flink-master"
-#        command:  /bin/bash -c "sed -i -e 's/taskmanager.numberOfTaskSlots: 1/taskmanager.numberOfTaskSlots: $(grep -c ^processor /proc/cpuinfo)/g' usl/local/flink/conf/flink-conf.yaml"
         expose:
               - "8081"
               - "8080"
@@ -133,7 +155,6 @@ services:
               INIT_DAEMON_STEP: "setup_flink"
               VIRTUAL_HOST: flink-master.big-data-europe.local
               VIRTUAL_PORT: "8081"
-              FLINK_MASTER_PORT_6123_TCP_ADDR: "flink-master"
         volumes:
               - ./data/flink-master:/data
         env_file:
@@ -141,19 +162,25 @@ services:
         depends_on:
               - namenode
               - datanode
+        networks:
+              - pilot-sc4-net
+
     flink-worker:
-        image: bde2020/flink-worker:latest
+        image: bde2020/flink-worker:1.2.0-hadoop2.7
         hostname: flink-worker
         container_name: flink-worker
+        links:
+              - flink-master
         environment:
-              FLINK_MASTER_PORT_6123_TCP_ADDR: "flink-master"
+              FLINK_MASTER_PORT_6123_TCP_ADDR: FLINK_MANAGER_IP
               CSS_SOURCE: "flink-dashboard"
               VIRTUAL_HOST: flink-worker.big-data-europe.local
               VIRTUAL_PORT: "8080"
         depends_on:
               - flink-master
-        links:
-              - flink-master:flink-master
+        networks:
+              - pilot-sc4-net
+
     flink-worker2:
         image: bde2020/flink-worker:latest
         hostname: flink-worker2
@@ -165,6 +192,9 @@ services:
               VIRTUAL_PORT: "8080"
         depends_on:
               - flink-master
+        networks:
+              - pilot-sc4-net
+
     producer:
         build:
             context: .
@@ -173,12 +203,15 @@ services:
         environment:
               HDFS_URL: hdfs://namenode:8020
               INIT_DAEMON_STEP: floating_producer
-              FLINK_MASTER_PORT_6123_TCP_ADDR: "flink-master"
+              FLINK_MASTER_PORT_6123_TCP_ADDR: flink-master
               FLINK_MASTER_PORT_6123_TCP_PORT: "6123"
         env_file:
               - ./config/hadoop/hadoop.env
         depends_on:
               - flink-master
+        networks:
+              - pilot-sc4-net
+
     consumer:
         build:
             context: .
@@ -187,12 +220,15 @@ services:
         environment:
               HDFS_URL: hdfs://namenode:8020
               INIT_DAEMON_STEP: floating_consumer
-              FLINK_MASTER_PORT_6123_TCP_ADDR: "flink-master"
+              FLINK_MASTER_PORT_6123_TCP_ADDR: flink-master
               FLINK_MASTER_PORT_6123_TCP_PORT: "6123"
         env_file:
               - ./config/hadoop/hadoop.env
         depends_on:
               - flink-master
+        networks:
+              - pilot-sc4-net
+
     monitor:
         image: bde2020/pipeline-monitor-frontend:0.1.0
         hostname: monitor
@@ -203,11 +239,15 @@ services:
             - identifier
         environment:
               VIRTUAL_HOST: monitor.big-data-europe.local
+        networks:
+            - pilot-sc4-net
 
     identifier:
         image: semtech/mu-identifier:1.0.0
         hostname: identifier
         container_name: identifier
+        networks:
+            - pilot-sc4-net
 
     dispatcher:
         image: semtech/mu-dispatcher:1.0.1
@@ -215,6 +255,8 @@ services:
         container_name: dispatcher
         volumes:
             - ./config:/config
+        networks:
+            - pilot-sc4-net
 
     database:
         image: tenforce/virtuoso:1.0.0-virtuoso7.2.2
@@ -227,16 +269,22 @@ services:
             - VIRTUAL_PORT=8890
         volumes:
             - ./data/db:/data
+        networks:
+            - pilot-sc4-net
 
     pipeline:
         image: bde2020/mu-pipeline-service:0.1.0
         hostname: pipeline
         container_name: pipeline
+        networks:
+            - pilot-sc4-net
 
     initdaemon:
         image: bde2020/mu-init-daemon-service:0.1.0
         hostname: initdaemon
         container_name: initdaemon
+        networks:
+            - pilot-sc4-net
 
     integratorui:
         image: bde2020/integrator-ui:latest
@@ -246,6 +294,8 @@ services:
             - ./config/integrator:/app/config
         environment:
             VIRTUAL_HOST: demo.big-data-europe.local
+        networks:
+            - pilot-sc4-net
 
     csswrapper:
         image: bde2020/nginx-proxy-with-css
@@ -255,3 +305,9 @@ services:
             - 80:80
         volumes:
             - /var/run/docker.sock:/tmp/docker.sock:ro
+        networks:
+            - pilot-sc4-net
+
+networks:
+  pilot-sc4-net:
+    external: true
