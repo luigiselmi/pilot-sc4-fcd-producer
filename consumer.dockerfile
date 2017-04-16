@@ -8,7 +8,7 @@
 #
 #    $ docker run -d --network pilot-sc4 --name fcd-consumer bde2020/pilot-sc4-fcd-consumer:v0.0.1
 
-FROM bde2020/flink-maven-template:1.1.4-hadoop2.7
+FROM bde2020/flink-maven-template:1.2.0-hadoop2.7
 
 MAINTAINER Luigi Selmi <luigiselmi@gmail.com>
 
