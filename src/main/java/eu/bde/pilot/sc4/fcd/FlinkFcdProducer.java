@@ -19,7 +19,7 @@ import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer010;
  */
 public class FlinkFcdProducer {
 
-  private static final String KAFKA_BROKER = "localhost:9092";
+  private static final String KAFKA_BROKER = "kafka:9092";
   
   public static void main(String[] args) throws Exception {
 
