@@ -9,7 +9,7 @@
 #    $ docker run -d --network pilot-sc4-net --name producer \ 
 #                 -e HDFS_URL="hdfs://namenode:8020" \
 #                 -e INIT_DAEMON_STEP="floating_producer" \
-#                 -e FLINK_MASTER_PORT_6123_TCP_ADDR="flink-master" \
+#                 -e FLINK_MASTER_PORT_6123_TCP_ADDR="<flink-master ip address>" \
 #                 -e FLINK_MASTER_PORT_6123_TCP_PORT="6123" \
 #                 bde2020/pilot-sc4-fcd-producer:v0.0.1
 
