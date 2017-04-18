@@ -172,7 +172,7 @@ services:
         links:
               - flink-master
         environment:
-              FLINK_MASTER_PORT_6123_TCP_ADDR: FLINK_MANAGER_IP
+              FLINK_MASTER_PORT_6123_TCP_ADDR: flink-master
               CSS_SOURCE: "flink-dashboard"
               VIRTUAL_HOST: flink-worker.big-data-europe.local
               VIRTUAL_PORT: "8080"
