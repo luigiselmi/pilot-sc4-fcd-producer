@@ -8,7 +8,6 @@ services:
         container_name: zookeeper
         environment:
             - MYID=1
-            - DELAY=5
         healthcheck:
             test: /healthcheck
             interval: 10s
@@ -26,6 +25,7 @@ services:
         container_name: kafka
         environment:
             - ZOOKEEPER_SERVERS=zookeeper:2181
+            - INITIAL_TOPICS=taxi
         healthcheck:
             test: /healthcheck
             interval: 5s

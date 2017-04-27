@@ -8,7 +8,6 @@ services:
         container_name: zookeeper
         environment:
             - MYID=1
-            - DELAY=5
             - INIT_DAEMON_STEP=setup_zookeeper
             - ENABLE_INIT_DAEMON = "true"
         expose:
@@ -26,6 +25,7 @@ services:
         container_name: kafka
         environment:
             - ZOOKEEPER_SERVERS=zookeeper:2181
+            - INITIAL_TOPICS=taxi
             - INIT_DAEMON_STEP=setup_kafka
             - ENABLE_INIT_DAEMON = "true"
         depends_on:

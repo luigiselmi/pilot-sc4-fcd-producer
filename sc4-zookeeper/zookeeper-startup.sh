@@ -15,5 +15,5 @@ if [[ $ENABLE_INIT_DAEMON = "true" ]] ;then
     ) &
 fi
     
-echo $0 
+echo `date` $0 : zkServer.sh start-foreground 
 exec /opt/zookeeper/bin/zkServer.sh start-foreground
