@@ -1,0 +1,11 @@
+{
+  "floating-cars" : {
+    "properties" : {
+       "cellid" : {"type": "integer"},
+       "location" : {"type": "geo_point"},
+       "vehicles" : {"type": "integer"},
+       "timestamp" : {"type": "date",
+                      "format": "YYYY-MM-DD HH:mm:ss"}
+    }
+  }
+}
