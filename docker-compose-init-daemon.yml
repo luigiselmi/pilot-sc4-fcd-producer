@@ -25,6 +25,7 @@ services:
             - ZOOKEEPER_SERVERS=zookeeper:2181
             - INIT_DAEMON_STEP=setup_kafka
             - ENABLE_INIT_DAEMON = "true"
+            - INITIAL_TOPICS="taxi"
         depends_on:
             - zookeeper
         expose:
