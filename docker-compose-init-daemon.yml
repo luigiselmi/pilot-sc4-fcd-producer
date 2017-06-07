@@ -122,7 +122,7 @@ services:
             - namenode
             - datanode
     flink-master:
-        image: bde2020/flink-master:1.1.4-hadoop2.7
+        image: bde2020/flink-master:1.2.0-hadoop2.7
         hostname: flink-master
         container_name: flink-master
         expose:
@@ -141,7 +141,7 @@ services:
               - namenode
               - datanode
     flink-worker:
-        image: bde2020/flink-worker:1.1.4-hadoop2.7
+        image: bde2020/flink-worker:1.2.0-hadoop2.7
         hostname: flink-worker
         container_name: flink-worker
         environment:
