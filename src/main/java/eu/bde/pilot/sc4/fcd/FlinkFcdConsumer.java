@@ -28,8 +28,12 @@ import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
 import org.apache.flink.streaming.connectors.elasticsearch2.ElasticsearchSink;
 import org.apache.flink.streaming.connectors.elasticsearch2.ElasticsearchSinkFunction;
 import org.apache.flink.streaming.connectors.elasticsearch2.RequestIndexer;
+import org.apache.flink.streaming.connectors.fs.SequenceFileWriter;
+import org.apache.flink.streaming.connectors.fs.bucketing.BucketingSink;
+import org.apache.flink.streaming.connectors.fs.bucketing.DateTimeBucketer;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer010;
 import org.apache.flink.util.Collector;
+import org.apache.hadoop.io.IntWritable;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexRequestBuilder;
 import org.elasticsearch.client.Requests;
@@ -65,6 +69,8 @@ public class FlinkFcdConsumer {
   private static String KAFKA_TOPIC_PARAM_NAME = "topic";
   private static String KAFKA_TOPIC_PARAM_VALUE = null;
   private static String TIME_WINDOW_PARAM_NAME = "window";
+  private static String HDFS_SINK_PARAM_NAME = "sink";
+  private static String HDFS_SINK_PARAM_VALUE = null;
   private static int TIME_WINDOW_PARAM_VALUE = 0;
   private static final int MAX_EVENT_DELAY = 60; // events are at most 60 sec out-of-order.
   private static final Logger log = LoggerFactory.getLogger(FlinkFcdConsumer.class);
@@ -73,13 +79,15 @@ public class FlinkFcdConsumer {
 	  
 	ParameterTool parameter = ParameterTool.fromArgs(args);
     
-    if (parameter.getNumberOfParameters() < 2) {
-      throw new IllegalArgumentException("The application needs two arguments, the name of the kafka topic from which it has to \n"
-          + "fetch the data, and the size of the window, in seconds. \n");
+    if (parameter.getNumberOfParameters() < 3) {
+      throw new IllegalArgumentException("The application needs three arguments, the name of the kafka topic from which it has to \n"
+          + "fetch the data, the size of the window, in minutes, \n"
+    		+ "and the path to the file on hdfs where the aggregations are stored."  );
     }
     
     KAFKA_TOPIC_PARAM_VALUE = parameter.get(KAFKA_TOPIC_PARAM_NAME);
     TIME_WINDOW_PARAM_VALUE = parameter.getInt(TIME_WINDOW_PARAM_NAME, TIME_WINDOW_PARAM_VALUE);
+    HDFS_SINK_PARAM_VALUE = parameter.get(HDFS_SINK_PARAM_NAME);
     
     Properties properties = null;
     
@@ -119,7 +127,10 @@ public class FlinkFcdConsumer {
 			.apply(new EventCounter());
 	
 	  // stores the data in Elasticsearch
-	  saveFcdData(boxBoundedEvents);
+	  //saveFcdDataElasticsearch(boxBoundedEvents);
+	  
+	  // stores the data in Hadoop HDFS
+	  saveFcdDataHdfs(boxBoundedEvents, HDFS_SINK_PARAM_VALUE);
 	  
 	  //boxBoundedEvents.print();
     
@@ -129,7 +140,7 @@ public class FlinkFcdConsumer {
   }
   
   /**
-   * Counts the number of events.
+   * Counts the number of events..
    */
   public static class EventCounter implements WindowFunction<
 	  Tuple2<Integer, Boolean>,       // input type (cell id, is within bb)
@@ -195,12 +206,27 @@ public class FlinkFcdConsumer {
 			return event.timestamp.getMillis();
 	  }
   }
+  
+  /**
+   * Sores the data in Hadoop HDFS  
+   * @param inputStream
+   * @throws UnknownHostException
+   */
+  public static void saveFcdDataHdfs(DataStream<Tuple5<Integer, Double, Double, Integer ,String>> inputStream, String sinkPath) throws UnknownHostException {
+	BucketingSink<Tuple5<Integer, Double, Double, Integer ,String>> sink = new BucketingSink<Tuple5<Integer, Double, Double, Integer ,String>>(sinkPath);
+	//sink.setBucketer(new DateTimeBucketer<Tuple5<Integer, Double, Double, Integer ,String>>("yyyy-MM-dd--HHmm"));
+	//sink.setWriter(new SequenceFileWriter<IntWritable, Text>());
+	//sink.setBatchSize(1024 * 1024 * 400); // this is 400 MB,
+  
+    inputStream.addSink(sink);
+    
+  }
   /**
    * Sores the data in Elasticsearch  
    * @param inputStream
    * @throws UnknownHostException
    */
-  public static void saveFcdData(DataStream<Tuple5<Integer, Double, Double, Integer ,String>> inputStream) throws UnknownHostException {
+  public static void saveFcdDataElasticsearch(DataStream<Tuple5<Integer, Double, Double, Integer ,String>> inputStream) throws UnknownHostException {
     Map<String, String> config = new HashMap<>();
     // This instructs the sink to emit after every element, otherwise they would be buffered
     config.put("bulk.flush.max.actions", "1");
