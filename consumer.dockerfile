@@ -14,4 +14,4 @@ MAINTAINER Luigi Selmi <luigiselmi@gmail.com>
 
 ENV FLINK_APPLICATION_JAR_NAME pilot-sc4-fcd-applications-0.1-jar-with-dependencies
 ENV FLINK_APPLICATION_MAIN_CLASS eu.bde.pilot.sc4.fcd.FlinkFcdConsumer
-ENV FLINK_APPLICATION_ARGS "--topic taxi --window 5"
+ENV FLINK_APPLICATION_ARGS "--topic taxi --window 2 --sink hdfs://namenode:8020/user/hue/taxi_aggregates.txt"
