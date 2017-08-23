@@ -42,8 +42,8 @@ services:
               VIRTUAL_HOST: hdfs-namenode.big-data-europe.local
       env_file:
             - ./config/hadoop/hadoop.env
-      volumes:
-            - ./data/hadoop/namenode:/hadoop/dfs/name
+#     volumes:
+#           - ./data/hadoop/namenode:/hadoop/dfs/name
       expose:
             - "50070"
     datanode:
@@ -56,8 +56,8 @@ services:
               VIRTUAL_PORT: "50075"
         env_file:
             - ./config/hadoop/hadoop.env
-        volumes:
-            - ./data/hadoop/datanode:/hadoop/dfs/data
+#       volumes:
+#           - ./data/hadoop/datanode:/hadoop/dfs/data
         depends_on:
             - namenode
         expose:
@@ -82,8 +82,8 @@ services:
         image: bde2020/hadoop-historyserver:1.1.0-hadoop2.7.1-java8
         hostname: historyserver
         container_name: historyserver
-        volumes:
-            - ./data/hadoop/historyserver:/hadoop/yarn/timeline
+#       volumes:
+#           - ./data/hadoop/historyserver:/hadoop/yarn/timeline
         env_file:
             - ./config/hadoop/hadoop.env
         environment:
@@ -133,8 +133,8 @@ services:
               INIT_DAEMON_STEP: "setup_flink"
               VIRTUAL_HOST: flink-master.big-data-europe.local
               VIRTUAL_PORT: "8081"
-        volumes:
-              - ./data/flink-master:/data
+#       volumes:
+#             - ./data/flink-master:/data
         env_file:
               - ./config/hadoop/hadoop.env
         depends_on:
@@ -233,14 +233,18 @@ services:
         container_name: initdaemon
 
     integratorui:
-        image: bde2020/integrator-ui:latest
+        build:
+            context: .
+            dockerfile: sc4-integratorui.dockerfile
+        image: bde2020/pilot-sc4-integratorui
         hostname: integratorui
         container_name: integratorui
-        volumes:
-            - ./config/integrator:/app/config
         environment:
             VIRTUAL_HOST: demo.big-data-europe.local
-# into the image copy
+# config/integrator/user-interfaces is copied into the image, see dockerfile
+# for development bind this volume into the container
+#       volumes:
+#           - ./config/integrator:/app/config
 
     csswrapper:
         image: bde2020/nginx-proxy-with-css
