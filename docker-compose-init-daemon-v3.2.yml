@@ -152,7 +152,7 @@ services:
         depends_on:
               - flink-master
     producer:
-        image: producer
+        image: bde2020/pilot-sc4-producer
         build:
             context: .
             dockerfile: sc4-producer.dockerfile
@@ -165,7 +165,7 @@ services:
         env_file:
               - ./config/hadoop/hadoop.env
     consumer:
-        image: consumer
+        image: bde2020/pilot-sc4-consumer
         build:
             context: .
             dockerfile: sc4-consumer.dockerfile
@@ -194,18 +194,22 @@ services:
         container_name: identifier
 
     dispatcher:
-        image: semtech/mu-dispatcher:1.0.1
+        build:
+            context: .
+            dockerfile: sc4-dispatcher.dockerfile
+        image: bde2020/pilot-sc4-dispatcher
         hostname: dispatcher
         container_name: dispatcher
-        volumes:
-            - ./config:/config
-# into the image copy
+# config/dispatcher.ex is copied into the image, see dockerfile
+# for development bind this volume into the container
+#       volumes:
+#           - ./config:/config
 
     database:
         build:
             context: .
             dockerfile: sc4-database.dockerfile
-        image: bde2020/sc4-database
+        image: bde2020/pilot-sc4-database
         hostname: database
         container_name: database
         environment:
@@ -213,7 +217,10 @@ services:
             - DEFAULT_GRAPH=http://mu.semte.ch/application
             - VIRTUAL_HOST=virtuoso.big-data-europe.local
             - VIRTUAL_PORT=8890
-# see Dockerfile: COPY ../data/db /data
+# database/toLoad/pipeline.ttl is copied into the image, see dockerfile
+# for development bind this volume into the container
+#        volumes:
+#            - ./data/database:/data
 
     pipeline:
         image: bde2020/mu-pipeline-service:0.1.0
