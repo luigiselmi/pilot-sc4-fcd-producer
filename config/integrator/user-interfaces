@@ -11,7 +11,7 @@
     "id": 2,
     "type": "user-interfaces",
     "attributes": {
-      "label": "HDFS Namenode",
+      "label": "HDFS",
       "base-url": "http://hdfs-namenode.big-data-europe.local"
     }
   },
@@ -19,26 +19,26 @@
     "id": 3,
     "type": "user-interfaces",
     "attributes": {
-      "label": "HDFS Datanode",
-      "base-url": "http://hdfs-datanode.big-data-europe.local"
+      "label": "Hue",
+      "base-url": "http://hue.big-data-europe.local",
+      "append-path": "/home"
     }
   },
   {
     "id": 4,
     "type": "user-interfaces",
     "attributes": {
-      "label": "Hue",
-      "base-url": "http://hue.big-data-europe.local"
+      "label": "Virtuoso",
+      "base-url": "http://virtuoso.big-data-europe.local"
     }
   },
   {
     "id": 5,
     "type": "user-interfaces",
     "attributes": {
-      "label": "PushMe",
-      "base-url": "http://bigknob.big-data-europe.local/index/"
+      "label": "Monitor",
+      "base-url": "http://monitor.big-data-europe.local"
     }
   }
-
 ]
 }

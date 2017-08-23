@@ -8,7 +8,6 @@ services:
         container_name: zookeeper
         environment:
             - MYID=1
-            - DELAY=5
         healthcheck:
             test: /healthcheck
             interval: 10s
@@ -26,6 +25,7 @@ services:
         container_name: kafka
         environment:
             - ZOOKEEPER_SERVERS=zookeeper:2181
+            - INITIAL_TOPICS=taxi
         healthcheck:
             test: /healthcheck
             interval: 5s
@@ -71,13 +71,60 @@ services:
         depends_on:
           namenode:
             condition: service_healthy
-        healthcheck:
-            test: ["CMD", "curl", "-f", "http://localhost:50075"]
-            interval: 5s
-            timeout: 3s
-            retries: 10
         expose:
             - "50075"
+    resourcemanager:
+        image: bde2020/hadoop-resourcemanager:1.1.0-hadoop2.7.1-java8
+        hostname: resourcemanager
+        container_name: resourcemanager
+        expose:
+            - "8031"
+            - "8088"
+        environment:
+            VIRTUAL_HOST: hdfs-resourcemanager.demo.big-data-europe.local
+            VIRTUAL_PORT: "8088"
+            CSS_SOURCE: "hadoop-resource-manager"
+        env_file:
+            - ./config/hadoop/hadoop.env
+        depends_on:
+            namenode:
+                condition: service_healthy
+            datanode:
+                condition: service_healthy
+    historyserver:
+        image: bde2020/hadoop-historyserver:1.1.0-hadoop2.7.1-java8
+        hostname: historyserver
+        container_name: historyserver
+        volumes:
+            - ./data/hadoop/historyserver:/hadoop/yarn/timeline
+        env_file:
+            - ./config/hadoop/hadoop.env
+        environment:
+            VIRTUAL_HOST: hdfs-historyserver.demo.big-data-europe.local
+            VIRTUAL_PORT: "8188"
+            CSS_SOURCE: "hadoop-history-server"
+        depends_on:
+            namenode:
+              condition: service_healthy
+            datanode:
+              condition: service_healthy
+    nodemanager:
+        image: bde2020/hadoop-nodemanager:1.1.0-hadoop2.7.1-java8
+        hostname: nodemanager
+        container_name: nodemanager
+        expose:
+            - "8042"
+        environment:
+            VIRTUAL_HOST: hdfs-nodemanager.demo.big-data-europe.local
+            VIRTUAL_PORT: "8042"
+            CSS_SOURCE: "hadoop-node-manager"
+        env_file:
+            - ./config/hadoop/hadoop.env
+        depends_on:
+            namenode:
+              condition: service_healthy
+            datanode:
+              condition: service_healthy
     filebrowser:
         image: bde2020/hdfs-filebrowser
         hostname: filebrowser
