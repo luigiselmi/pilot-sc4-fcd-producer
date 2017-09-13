@@ -208,7 +208,7 @@ public class FlinkFcdConsumer {
   }
   
   /**
-   * Sores the data in Hadoop HDFS  
+   * Stores the data in Hadoop HDFS  
    * @param inputStream
    * @throws UnknownHostException
    */
@@ -217,12 +217,12 @@ public class FlinkFcdConsumer {
 	//sink.setBucketer(new DateTimeBucketer<Tuple5<Integer, Double, Double, Integer ,String>>("yyyy-MM-dd--HHmm"));
 	//sink.setWriter(new SequenceFileWriter<IntWritable, Text>());
 	//sink.setBatchSize(1024 * 1024 * 400); // this is 400 MB,
-  
+ 
     inputStream.addSink(sink);
     
   }
   /**
-   * Sores the data in Elasticsearch  
+   * Stores the data in Elasticsearch  
    * @param inputStream
    * @throws UnknownHostException
    */
