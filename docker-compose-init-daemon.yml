@@ -154,7 +154,7 @@ services:
     producer:
         build:
             context: .
-            dockerfile: producer.dockerfile
+            dockerfile: sc4-producer.dockerfile
         container_name: producer
         environment:
               HDFS_URL: hdfs://namenode:8020
@@ -166,7 +166,7 @@ services:
     consumer:
         build:
             context: .
-            dockerfile: consumer.dockerfile
+            dockerfile: sc4-consumer.dockerfile
         container_name: consumer
         environment:
               HDFS_URL: hdfs://namenode:8020
