@@ -252,7 +252,11 @@ services:
         hostname: csswrapper
         container_name: csswrapper
         ports:
-            - 80:80
+            - 3003:80
         volumes:
             - /var/run/docker.sock:/tmp/docker.sock:ro
+        environment:
+            - "constraint:node==172.26.0.175"
+            - DOCKER_HOST=tcp://172.26.0.175:2377
+
 # into the image define docker host
