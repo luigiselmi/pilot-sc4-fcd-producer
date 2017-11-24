@@ -218,6 +218,7 @@ public class FlinkFcdConsumer {
   }
   
   /**
+<<<<<<< HEAD
    * 
    * @param inputStream
    * @param sinkPath
@@ -239,6 +240,9 @@ public class FlinkFcdConsumer {
   }
   /**
    * Writes the data in Hadoop HDFS  
+=======
+   * Stores the data in Hadoop HDFS  
+>>>>>>> 3c3672cb1769c9fe6213f227e76316cd00b7689a
    * @param inputStream
    * @throws UnknownHostException
    */
@@ -246,13 +250,14 @@ public class FlinkFcdConsumer {
 	BucketingSink<Tuple5<Integer, Double, Double, Integer ,String>> sink = new BucketingSink<Tuple5<Integer, Double, Double, Integer ,String>>(sinkPath);
 	sink.setBucketer(new DateTimeBucketer<Tuple5<Integer, Double, Double, Integer ,String>>("yyyy-MM-dd--HHmm"));
 	//sink.setWriter(new SequenceFileWriter<IntWritable, Text>());
+
 	sink.setBatchSize(1024 * 1); // this is 1 KB
   
     inputStream.addSink(sink);
     
   }
   /**
-   * Sores the data in Elasticsearch  
+   * Stores the data in Elasticsearch  
    * @param inputStream
    * @throws UnknownHostException
    */

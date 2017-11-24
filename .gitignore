@@ -4,13 +4,13 @@
 target/
 
 # ignore the init-daemon database
-data/db/virtuoso*
+data/database/virtuoso*
+
+# ignore generated http files if any
+data/database/http*
 
 # ignore the hadoop hdfs volumes
 data/hadoop
-
-# ignore generated http files if any
-data/db/http*
 
 # ignore the following hidden files and folders
 .classpath
