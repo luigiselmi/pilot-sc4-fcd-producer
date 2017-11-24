@@ -59,12 +59,36 @@ You can submit the MapMatch job to the Flink Job manager setting the following p
     Program Arguments: mapmatch --topic <a kafka topic> --window <minutes>
 
 ## Troubleshooting
+### Flink Task Manager
 Before submitting a 2nd or more jobs to the Task Manager, be sure to set the number of task slots equal to the number of jobs you want 
 the Task Manager to run. From your Flink installation root folder open conf/flink-conf.yaml and set 
 
     taskmanager.numberOfTaskSlots: 2
     
 to run the producer and the consumer in local.
+### Nginx Configuration
+The Hue service currently doesn't allow to copy a file bigger than 1MB in HDFS. In order to overcome this problem after running the pilot with the docker-compose-initdaemon.yml file you have to enter the nginx-proxy-with-css (csswrapper) container 
+
+    $ docker exec -it csswrapper /bin/bash
+    
+The file /etc/nginx/nginx.conf must be updated in order to set the client_max_body_size parameter within the http section of the file to the size of the file that must be copied in HDFS. Since there's no editor in the container you must install one
+
+    # apt-get update
+    # apt-get install vim
+    
+Open the nginx.conf file, add the client_max_body_size parameter and set its value (e.g. 200 MB)
+
+    http {
+        .....
+        client_max_body_size 200M;
+    }
+ 
+Leave the container with Ctrl-P Ctrl-Q and restart it
+
+    $ docker stop csswrapper
+    $ docker start csswrapper
+    
+Now Hue should accept files whose size is below the value set in nginx.conf  
 
 ##Licence
 Apache 2.0
