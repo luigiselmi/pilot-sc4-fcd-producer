@@ -16,3 +16,6 @@ data/hadoop
 .classpath
 .project
 .settings/
+
+# ignore the top level tmp/ directory
+tmp/
