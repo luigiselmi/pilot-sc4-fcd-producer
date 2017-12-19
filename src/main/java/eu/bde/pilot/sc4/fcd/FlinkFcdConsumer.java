@@ -1,7 +1,10 @@
 package eu.bde.pilot.sc4.fcd;
 
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.net.URI;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -9,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
+import org.apache.commons.compress.utils.IOUtils;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.api.java.tuple.Tuple;
@@ -18,6 +22,7 @@ import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.api.java.tuple.Tuple5;
 import org.apache.flink.api.java.tuple.Tuple9;
 import org.apache.flink.api.java.utils.ParameterTool;
+import org.apache.flink.runtime.fs.hdfs.HadoopDataOutputStream;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -33,7 +38,12 @@ import org.apache.flink.streaming.connectors.fs.bucketing.BucketingSink;
 import org.apache.flink.streaming.connectors.fs.bucketing.DateTimeBucketer;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer010;
 import org.apache.flink.util.Collector;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataOutputStream;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.util.Progressable;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.index.IndexRequestBuilder;
 import org.elasticsearch.client.Requests;
@@ -208,16 +218,41 @@ public class FlinkFcdConsumer {
   }
   
   /**
+<<<<<<< HEAD
+   * 
+   * @param inputStream
+   * @param sinkPath
+ * @throws IOException 
+   */
+  public static void saveGridDataHdfs(DataStream<Tuple5<Integer, Double, Double, Integer ,String>> inputStream, String sinkPath) throws IOException {
+	Configuration conf = new Configuration();
+	URI uri = URI.create(sinkPath);
+	FileSystem hdfs = FileSystem.get(uri,conf);
+	Path file = new Path(sinkPath);
+	if(hdfs.exists(file)) {
+		hdfs.delete(file, true);
+	}
+	FSDataOutputStream os = hdfs.create(file);
+	HadoopDataOutputStream hos = new HadoopDataOutputStream(os);
+	//IOUtils.copy(inputStream.p, os);
+	//hos.write(inputStream.print());
+	
+  }
+  /**
+   * Writes the data in Hadoop HDFS  
+=======
    * Stores the data in Hadoop HDFS  
+>>>>>>> 3c3672cb1769c9fe6213f227e76316cd00b7689a
    * @param inputStream
    * @throws UnknownHostException
    */
   public static void saveFcdDataHdfs(DataStream<Tuple5<Integer, Double, Double, Integer ,String>> inputStream, String sinkPath) throws UnknownHostException {
 	BucketingSink<Tuple5<Integer, Double, Double, Integer ,String>> sink = new BucketingSink<Tuple5<Integer, Double, Double, Integer ,String>>(sinkPath);
-	//sink.setBucketer(new DateTimeBucketer<Tuple5<Integer, Double, Double, Integer ,String>>("yyyy-MM-dd--HHmm"));
+	sink.setBucketer(new DateTimeBucketer<Tuple5<Integer, Double, Double, Integer ,String>>("yyyy-MM-dd--HHmm"));
 	//sink.setWriter(new SequenceFileWriter<IntWritable, Text>());
-	//sink.setBatchSize(1024 * 1024 * 400); // this is 400 MB,
- 
+
+	sink.setBatchSize(1024 * 1); // this is 1 KB
+  
     inputStream.addSink(sink);
     
   }
