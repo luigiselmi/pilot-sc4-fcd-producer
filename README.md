@@ -10,19 +10,19 @@ computing their geohash and then matches the coordinates pairs to the road segme
 of vehicles and the average speed in each road segment within a time window. The result of the computation for each road segment, 
 and for all the time interval, is sent to a sink (TBD, Elasticsearch or Cassandra).
 
-##Requirements
+## Requirements
 
 The MapMatch program depends on PostGis with the road network data pre loaded, R for the map matching algorithm and Rserver for the 
 communication. All these modules are included in [pilot-sc4-postgis](https://github.com/big-data-europe/pilot-sc4-postgis). Start
 the pilot-sc4-postgis docker container before running the MapMatch program.
 
-##Build
+## Build
 
 The software is based on Maven and can be built from the project root folder running the command
 
     $ mvn install  
 
-##Install and Run
+## Install and Run
 This component can be run as a Java application passing some arguments to select the Flink application and further parameters.
 
 ### Floating Car Data Producer 

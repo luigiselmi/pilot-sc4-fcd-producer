@@ -1,6 +1,9 @@
 # from https://github.com/big-data-europe/docker-kafka
 
-FROM  docker.elastic.co/elasticsearch/elasticsearch:6.1.0
+# 2017-12-22 15:40:12 this is the current version:
+#FROM  docker.elastic.co/elasticsearch/elasticsearch:6.1.0
+
+FROM elasticsearch:2.3
 
 MAINTAINER Karl-Heinz Sylla <karl-heinz.sylla@iais.fraunhofer.de>
 

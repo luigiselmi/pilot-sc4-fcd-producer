@@ -141,6 +141,20 @@ services:
               VIRTUAL_PORT: "8080"
         depends_on:
               - flink-master
+    elasticsearch:
+        image: bde2020/sc4-elasticsearch
+        build:
+            context: sc4-elasticsearch/
+        ports:
+            - 9200:9200
+            - 9300:9300
+    kibana:
+#        image: kibana:6.1.0
+        image: kibana:4.5.0
+        environment:
+            ELASTICSEARCH_URL: http://elasticsearch:9200
+        ports:
+            - 5601:5601
     producer:
         image: bde2020/pilot-sc4-producer
         build:
@@ -166,6 +180,8 @@ services:
               FLINK_MASTER_PORT_6123_TCP_PORT: "6123"
         env_file:
               - ./config/hadoop/hadoop.env
+#-----------------------------------------------------------------------------
+# monitor and intialisation framework
     monitor:
         image: bde2020/pipeline-monitor-frontend:0.1.0
         hostname: monitor
