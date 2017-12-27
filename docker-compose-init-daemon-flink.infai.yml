@@ -1,0 +1,463 @@
+version: '2.1'
+services:
+    zookeeper_1:
+        build:
+            context: ./sc4-zookeeper
+        image: bde2020/pilot-sc4-zookeeper
+        hostname: zookeeper_1
+        container_name: zookeeper_1
+        environment:
+            - MYID=1
+            - INIT_DAEMON_STEP=setup_zookeeper
+            - ENABLE_INIT_DAEMON = "true"
+            - "constraint:node==akswnc4.aksw.internal"
+        expose:
+            - "2181"
+        ports:
+            - "2181:2181"
+        networks:
+            - pilot-sc4-net
+
+    zookeeper_2:
+        build:
+            context: ./sc4-zookeeper
+        image: bde2020/pilot-sc4-zookeeper
+        hostname: zookeeper_2
+        container_name: zookeeper_2
+        environment:
+            - MYID=1
+            - INIT_DAEMON_STEP=setup_zookeeper
+            - ENABLE_INIT_DAEMON = "true"
+            - "constraint:node==akswnc5.aksw.internal"
+        expose:
+            - "2181"
+        ports:
+            - "2181:2181"
+        networks:
+            - pilot-sc4-net
+
+    zookeeper_3:
+        build:
+            context: ./sc4-zookeeper
+        image: bde2020/pilot-sc4-zookeeper
+        hostname: zookeeper_3
+        container_name: zookeeper_3
+        environment:
+            - MYID=1
+            - INIT_DAEMON_STEP=setup_zookeeper
+            - ENABLE_INIT_DAEMON = "true"
+            - "constraint:node==akswnc6.aksw.internal"
+        expose:
+            - "2181"
+        ports:
+            - "2181:2181"
+        networks:
+            - pilot-sc4-net
+
+    kafka_1:
+        build:
+            context: ./sc4-kafka
+        image: bde2020/pilot-sc4-kafka
+        hostname: kafka_1
+        container_name: kafka_1
+        environment:
+            - ZOOKEEPER_SERVERS=zookeeper:2181
+            - INITIAL_TOPICS=taxi
+            - INIT_DAEMON_STEP=setup_kafka
+            - ENABLE_INIT_DAEMON = "true"
+            - "constraint:node==akswnc4.aksw.internal"
+        depends_on:
+            - zookeeper_1
+            - zookeeper_2
+            - zookeeper_3
+        expose:
+            - "9092"
+        networks:
+            - pilot-sc4-net
+
+    kafka_2:
+        build:
+            context: ./sc4-kafka
+        image: bde2020/pilot-sc4-kafka
+        hostname: kafka_2
+        container_name: kafka_2
+        environment:
+            - ZOOKEEPER_SERVERS=zookeeper:2181
+            - INITIAL_TOPICS=taxi
+            - INIT_DAEMON_STEP=setup_kafka
+            - ENABLE_INIT_DAEMON = "true"
+            - "constraint:node==akswnc5.aksw.internal"
+        depends_on:
+            - zookeeper_1
+            - zookeeper_2
+            - zookeeper_3
+        expose:
+            - "9092"
+        networks:
+            - pilot-sc4-net
+
+    kafka_3:
+        build:
+            context: ./sc4-kafka
+        image: bde2020/pilot-sc4-kafka
+        hostname: kafka_3
+        container_name: kafka_3
+        environment:
+            - ZOOKEEPER_SERVERS=zookeeper:2181
+            - INITIAL_TOPICS=taxi
+            - INIT_DAEMON_STEP=setup_kafka
+            - ENABLE_INIT_DAEMON = "true"
+            - "constraint:node==akswnc6.aksw.internal"
+        depends_on:
+            - zookeeper_1
+            - zookeeper_2
+            - zookeeper_3
+        expose:
+            - "9092"
+        networks:
+            - pilot-sc4-net           
+
+    namenode:
+      image: bde2020/hadoop-namenode:1.1.0-hadoop2.7.1-java8
+      hostname: namenode
+      container_name: namenode
+      environment:
+            - CSS_SOURCE="hadoop"
+            - CLUSTER_NAME=test
+            - INIT_DAEMON_STEP="setup_hdfs"
+            - VIRTUAL_HOST=hdfs-namenode.big-data-europe.aksw.org
+            - "constraint:node==akswnc4.aksw.internal"
+      env_file:
+            - ./config/hadoop/hadoop.env
+      volumes:
+            - ./data/hadoop/namenode:/hadoop/dfs/name
+      expose:
+            - "50070"
+      networks:
+            - pilot-sc4-net
+
+    datanode1:
+        image: bde2020/hadoop-datanode:1.1.0-hadoop2.7.1-java8
+        hostname: datanode1
+        container_name: datanode1
+        environment:
+            - CSS_SOURCE="hadoop"
+            - VIRTUAL_HOST=hdfs-datanode1.big-data-europe.aksw.org
+            - VIRTUAL_PORT="50075"
+            - "constraint:node==akswnc4.aksw.internal"
+        env_file:
+            - ./config/hadoop/hadoop.env
+        volumes:
+            - ./data/hadoop/datanode1:/hadoop/dfs/data
+        depends_on:
+            - namenode
+        expose:
+            - "50075"
+        networks:
+            - pilot-sc4-net
+
+    datanode2:
+        image: bde2020/hadoop-datanode:1.1.0-hadoop2.7.1-java8
+        hostname: datanode2
+        container_name: datanode2
+        environment:
+            - CSS_SOURCE="hadoop"
+            - VIRTUAL_HOST=hdfs-datanode1.big-data-europe.aksw.org
+            - VIRTUAL_PORT="50075"
+            - "constraint:node==akswnc5.aksw.internal"
+        env_file:
+            - ./config/hadoop/hadoop.env
+        volumes:
+            - ./data/hadoop/datanode2:/hadoop/dfs/data
+        depends_on:
+            - namenode
+        expose:
+            - "50075"
+        networks:
+            - pilot-sc4-net
+
+    datanode3:
+        image: bde2020/hadoop-datanode:1.1.0-hadoop2.7.1-java8
+        hostname: datanode3
+        container_name: datanode3
+        environment:
+            - CSS_SOURCE="hadoop"
+            - VIRTUAL_HOST=hdfs-datanode3.big-data-europe.aksw.org
+            - VIRTUAL_PORT="50075"
+            - "constraint:node==akswnc6.aksw.internal"
+        env_file:
+            - ./config/hadoop/hadoop.env
+        volumes:
+            - ./data/hadoop/datanode3:/hadoop/dfs/data
+        depends_on:
+            - namenode
+        expose:
+            - "50075"
+        networks:
+            - pilot-sc4-net
+
+    resourcemanager:
+        image: bde2020/hadoop-resourcemanager:1.1.0-hadoop2.7.1-java8
+        hostname: resourcemanager
+        container_name: resourcemanager
+        expose:
+            - "8031"
+            - "8088"
+        environment:
+            VIRTUAL_HOST: hdfs-resourcemanager.demo.big-data-europe.aksw.org
+            VIRTUAL_PORT: "8088"
+            CSS_SOURCE: "hadoop-resource-manager"
+        env_file:
+            - ./config/hadoop/hadoop.env
+        depends_on:
+              - namenode
+              - datanode1
+              - datanode2
+              - datanode3
+        networks:
+              - pilot-sc4-net
+
+    historyserver:
+        image: bde2020/hadoop-historyserver:1.1.0-hadoop2.7.1-java8
+        hostname: historyserver
+        container_name: historyserver
+        volumes:
+            - ./data/hadoop/historyserver:/hadoop/yarn/timeline
+        env_file:
+            - ./config/hadoop/hadoop.env
+        environment:
+            VIRTUAL_HOST: hdfs-historyserver.demo.big-data-europe.aksw.org
+            VIRTUAL_PORT: "8188"
+            CSS_SOURCE: "hadoop-history-server"
+        depends_on:
+              - namenode
+              - datanode1
+              - datanode2
+              - datanode3
+        networks:
+              - pilot-sc4-net
+
+    nodemanager:
+        image: bde2020/hadoop-nodemanager:1.1.0-hadoop2.7.1-java8
+        hostname: nodemanager
+        container_name: nodemanager
+        expose:
+            - "8042"
+        environment:
+            VIRTUAL_HOST: hdfs-nodemanager.demo.big-data-europe.aksw.org
+            VIRTUAL_PORT: "8042"
+            CSS_SOURCE: "hadoop-node-manager"
+        env_file:
+            - ./config/hadoop/hadoop.env
+        depends_on:
+              - namenode
+              - datanode1
+              - datanode2
+              - datanode3
+        networks:
+              - pilot-sc4-net
+
+    filebrowser:
+        image: bde2020/hdfs-filebrowser:latest
+        hostname: filebrowser
+        container_name: filebrowser
+        expose:
+            - "8088"
+        environment:
+              NAMENODE_HOST: namenode
+              VIRTUAL_HOST: hue.big-data-europe.aksw.org
+              VIRTUAL_PORT: "8088"
+        depends_on:
+            - namenode
+            - datanode1
+            - datanode2
+            - datanode3
+        networks:
+            - pilot-sc4-net
+
+    flink-master:
+        image: bde2020/flink-master:1.2.0-hadoop2.7
+        hostname: "flink-master"
+        container_name: "flink-master"
+        expose:
+              - "8081"
+              - "8080"
+        environment:
+            - CSS_SOURCE="flink-dashboard"
+            - INIT_DAEMON_STEP="setup_flink"
+            - VIRTUAL_HOST=flink-master.big-data-europe.aksw.org
+            - VIRTUAL_PORT="8081"
+            - "constraint:node==akswnc4.aksw.internal"
+        volumes:
+              - ./data/flink-master:/data
+        env_file:
+              - ./config/hadoop/hadoop.env
+        depends_on:
+              - namenode
+              - datanode1
+              - datanode2
+              - datanode3
+        networks:
+              - pilot-sc4-net
+
+    flink-worker_1:
+        image: bde2020/flink-worker:1.2.0-hadoop2.7
+        hostname: flink-worker1
+        container_name: flink-worker1
+        environment:
+            - FLINK_MASTER_PORT_6123_TCP_ADDR=flink-master
+            - CSS_SOURCE="flink-dashboard"
+            - VIRTUAL_HOST=flink-worker1.big-data-europe.aksw.org
+            - VIRTUAL_PORT="8080"
+            - "constraint:node==akswnc4.aksw.internal"              
+        depends_on:
+              - flink-master
+        networks:
+              - pilot-sc4-net
+
+    flink-worker2:
+        image: bde2020/flink-worker:latest
+        hostname: flink-worker2
+        container_name: flink-worker2
+        environment:
+            - FLINK_MASTER_PORT_6123_TCP_ADDR=flink-master
+            - CSS_SOURCE="flink-dashboard"
+            - VIRTUAL_HOST=flink-worker2.big-data-europe.aksw.org
+            - VIRTUAL_PORT="8080"
+            - "constraint:node==akswnc5.aksw.internal" 
+        depends_on:
+              - flink-master
+        networks:
+              - pilot-sc4-net
+
+    flink-worker3:
+        image: bde2020/flink-worker:latest
+        hostname: flink-worker3
+        container_name: flink-worker3
+        environment:
+            - FLINK_MASTER_PORT_6123_TCP_ADDR=flink-master
+            - CSS_SOURCE="flink-dashboard"
+            - VIRTUAL_HOST=flink-worker3.big-data-europe.aksw.org
+            - VIRTUAL_PORT="8080"
+            - "constraint:node==akswnc6.aksw.internal" 
+        depends_on:
+              - flink-master
+        networks:
+              - pilot-sc4-net
+
+    producer:
+        build:
+            context: .
+            dockerfile: producer.dockerfile
+        container_name: producer
+        environment:
+              HDFS_URL: hdfs://namenode:8020
+              INIT_DAEMON_STEP: floating_producer
+              FLINK_MASTER_PORT_6123_TCP_ADDR: flink-master
+              FLINK_MASTER_PORT_6123_TCP_PORT: "6123"
+        env_file:
+              - ./config/hadoop/hadoop.env
+        depends_on:
+              - flink-master
+        networks:
+              - pilot-sc4-net
+
+    consumer:
+        build:
+            context: .
+            dockerfile: consumer.dockerfile
+        container_name: consumer
+        environment:
+              HDFS_URL: hdfs://namenode:8020
+              INIT_DAEMON_STEP: floating_consumer
+              FLINK_MASTER_PORT_6123_TCP_ADDR: flink-master
+              FLINK_MASTER_PORT_6123_TCP_PORT: "6123"
+        env_file:
+              - ./config/hadoop/hadoop.env
+        depends_on:
+              - flink-master
+        networks:
+              - pilot-sc4-net
+
+    monitor:
+        image: bde2020/pipeline-monitor-frontend:0.1.0
+        hostname: monitor
+        container_name: monitor
+        links:
+            - identifier:backend
+        depends_on:
+            - identifier
+        environment:
+              VIRTUAL_HOST: monitor.big-data-europe.local
+        networks:
+            - pilot-sc4-net
+
+    identifier:
+        image: semtech/mu-identifier:1.0.0
+        hostname: identifier
+        container_name: identifier
+        networks:
+            - pilot-sc4-net
+
+    dispatcher:
+        image: semtech/mu-dispatcher:1.0.1
+        hostname: dispatcher
+        container_name: dispatcher
+        volumes:
+            - ./config:/config
+        networks:
+            - pilot-sc4-net
+
+    database:
+        image: tenforce/virtuoso:1.0.0-virtuoso7.2.2
+        hostname: database
+        container_name: database
+        environment:
+            - SPARQL_UPDATE=true
+            - DEFAULT_GRAPH=http://mu.semte.ch/application
+            - VIRTUAL_HOST=virtuoso.big-data-europe.local
+            - VIRTUAL_PORT=8890
+        volumes:
+            - ./data/db:/data
+        networks:
+            - pilot-sc4-net
+
+    pipeline:
+        image: bde2020/mu-pipeline-service:0.1.0
+        hostname: pipeline
+        container_name: pipeline
+        networks:
+            - pilot-sc4-net
+
+    initdaemon:
+        image: bde2020/mu-init-daemon-service:0.1.0
+        hostname: initdaemon
+        container_name: initdaemon
+        networks:
+            - pilot-sc4-net
+
+    integratorui:
+        image: bde2020/integrator-ui:latest
+        hostname: integratorui
+        container_name: integratorui
+        volumes:
+            - ./config/integrator:/app/config
+        environment:
+            VIRTUAL_HOST: demo.big-data-europe.local
+        networks:
+            - pilot-sc4-net
+
+    csswrapper:
+        image: bde2020/nginx-proxy-with-css
+        hostname: csswrapper
+        container_name: csswrapper
+        ports:
+            - 80:80
+        volumes:
+            - /var/run/docker.sock:/tmp/docker.sock:ro
+        networks:
+            - pilot-sc4-net
+
+networks:
+  pilot-sc4-net:
+    external: true
