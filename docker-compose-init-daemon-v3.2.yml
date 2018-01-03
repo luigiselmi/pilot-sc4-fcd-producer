@@ -143,6 +143,7 @@ services:
               - flink-master
     elasticsearch:
         image: bde2020/sc4-elasticsearch
+        hostname: elasticsearch
         build:
             context: sc4-elasticsearch/
         ports:
@@ -151,12 +152,14 @@ services:
     kibana:
 #        image: kibana:6.1.0
         image: kibana:4.5.0
+        hostname: kibana
         environment:
             ELASTICSEARCH_URL: http://elasticsearch:9200
         ports:
             - 5601:5601
     producer:
         image: bde2020/pilot-sc4-producer
+        hostname: producer
         build:
             context: .
             dockerfile: sc4-producer.dockerfile
@@ -170,6 +173,7 @@ services:
               - ./config/hadoop/hadoop.env
     consumer:
         image: bde2020/pilot-sc4-consumer
+        hostname: consumer
         build:
             context: .
             dockerfile: sc4-consumer.dockerfile
