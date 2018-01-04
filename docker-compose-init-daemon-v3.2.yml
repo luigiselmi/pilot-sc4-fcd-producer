@@ -7,15 +7,12 @@ services:
         hostname: zookeeper
         environment:
             - MYID=1
-            - DELAY=$DELAY
 #            - INIT_DAEMON_STEP=setup_zookeeper
 #            - ENABLE_INIT_DAEMON=true
         expose:
             - "2181"
         ports:
             - "2181:2181"
-        networks:
-            - sc4network
     kafka:
         build:
             context: ./sc4-kafka
@@ -30,8 +27,6 @@ services:
             - zookeeper
         expose:
             - "9092"
-        networks:
-            - sc4network
 
     namenode:
         image: bde2020/hadoop-namenode:1.1.0-hadoop2.7.1-java8
@@ -47,8 +42,6 @@ services:
 #           - ./data/hadoop/namenode:/hadoop/dfs/name
         expose:
             - "50070"
-        networks:
-            - sc4network
     datanode:
         image: bde2020/hadoop-datanode:1.1.0-hadoop2.7.1-java8
         hostname: datanode
@@ -64,8 +57,6 @@ services:
             - namenode
         expose:
             - "50075"
-        networks:
-            - sc4network
     resourcemanager:
         image: bde2020/hadoop-resourcemanager:1.1.0-hadoop2.7.1-java8
         hostname: resourcemanager
@@ -81,8 +72,6 @@ services:
         depends_on:
               - namenode
               - datanode
-        networks:
-            - sc4network
     historyserver:
         image: bde2020/hadoop-historyserver:1.1.0-hadoop2.7.1-java8
         hostname: historyserver
@@ -97,8 +86,6 @@ services:
         depends_on:
               - namenode
               - datanode
-        networks:
-            - sc4network
     nodemanager:
         image: bde2020/hadoop-nodemanager:1.1.0-hadoop2.7.1-java8
         hostname: nodemanager
@@ -113,8 +100,6 @@ services:
         depends_on:
               - namenode
               - datanode
-        networks:
-            - sc4network
     filebrowser:
         image: bde2020/hdfs-filebrowser
         hostname: filebrowser
@@ -127,8 +112,6 @@ services:
         depends_on:
             - namenode
             - datanode
-        networks:
-            - sc4network
     flink-master:
         image: bde2020/flink-master:1.2.0-hadoop2.7
         hostname: flink-master
@@ -147,8 +130,6 @@ services:
         depends_on:
               - namenode
               - datanode
-        networks:
-            - sc4network
     flink-worker:
         image: bde2020/flink-worker:1.2.0-hadoop2.7
         hostname: flink-worker
@@ -159,8 +140,6 @@ services:
               VIRTUAL_PORT: "8080"
         depends_on:
               - flink-master
-        networks:
-            - sc4network
     elasticsearch:
         image: bde2020/sc4-elasticsearch
         hostname: elasticsearch
@@ -169,8 +148,6 @@ services:
         ports:
             - 9200:9200
             - 9300:9300
-        networks:
-            - sc4network
     kibana:
 #        image: kibana:6.1.0
         image: kibana:4.5.0
@@ -179,8 +156,6 @@ services:
             ELASTICSEARCH_URL: http://elasticsearch:9200
         ports:
             - 5601:5601
-        networks:
-            - sc4network
     producer:
         image: bde2020/pilot-sc4-producer
         hostname: producer
@@ -195,8 +170,6 @@ services:
               FLINK_APPLICATION_ARGS: "--path hdfs://namenode:8020/user/hue/taxi_sample_5k.txt --topic taxi"
         env_file:
               - ./config/hadoop/hadoop.env
-        networks:
-            - sc4network
     consumer:
         image: bde2020/pilot-sc4-consumer
         hostname: consumer
@@ -210,27 +183,21 @@ services:
               FLINK_MASTER_PORT_6123_TCP_PORT: "6123"
         env_file:
               - ./config/hadoop/hadoop.env
-        networks:
-            - sc4network
 #-----------------------------------------------------------------------------
 # monitor and intialisation framework
     monitor:
         image: bde2020/pipeline-monitor-frontend:0.1.0
         hostname: monitor
         links:
-            - identifier:backend
+            - backend
         depends_on:
-            - identifier
+            - backend
         environment:
               VIRTUAL_HOST: monitor.big-data-europe.local
-        networks:
-            - sc4network
 
     backend:
         image: semtech/mu-identifier:1.0.0
         hostname: backend
-        networks:
-            - sc4network
 
     dispatcher:
         build:
@@ -242,8 +209,6 @@ services:
 # for development bind this volume into the container
 #       volumes:
 #           - ./config:/config
-        networks:
-            - sc4network
 
     database:
         build:
@@ -260,20 +225,14 @@ services:
 # for development bind this volume into the container
 #        volumes:
 #            - ./data/database:/data
-        networks:
-            - sc4network
 
     pipeline:
         image: bde2020/mu-pipeline-service:0.1.0
         hostname: pipeline
-        networks:
-            - sc4network
 
     initdaemon:
         image: bde2020/mu-init-daemon-service:0.1.0
         hostname: initdaemon
-        networks:
-            - sc4network
 
     integratorui:
         build:
@@ -287,8 +246,6 @@ services:
 # for development bind this volume into the container
 #       volumes:
 #           - ./config/integrator:/app/config
-        networks:
-            - sc4network
 
     csswrapper:
         image: bde2020/nginx-proxy-with-css
@@ -300,11 +257,10 @@ services:
 #        environment:
 #            - "constraint:node==172.26.0.175"
 #            - DOCKER_HOST=tcp://172.26.0.175:2377
-        networks:
-            - sc4network
 
 # into the image define docker host
 
 networks:
-    sc4network:
+    default:
         driver: overlay
+
