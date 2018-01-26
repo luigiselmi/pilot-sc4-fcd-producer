@@ -39,6 +39,14 @@
       "label": "Monitor",
       "base-url": "http://monitor.big-data-europe.local"
     }
-  }
-]
+  },
+  {
+    "id": 6,
+    "type": "user-interfaces",
+    "attributes": {
+      "label": "Kibana",
+      "base-url": "http://kibana.big-data-europe.local",
+      "append-path": ""
+    }
+  }]
 }

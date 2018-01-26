@@ -14,13 +14,9 @@
 #                 bde2020/pilot-sc4-fcd-producer:v0.0.1
 
 #FROM bde2020/flink-maven-template:latest
-FROM bde2020/flink-maven-template:1.2.0-hadoop2.7
+FROM bde2020/flink-maven-template:1.4.0-hadoop2.7
 
 MAINTAINER Luigi Selmi <luigiselmi@gmail.com>, Karl-Heinz Sylla <karl-heinz.sylla@iais.fraunhofer.de>
-
-COPY step-utils/step-await-start.sh /wait-for-step.sh
-COPY step-utils/step-notify-execute.sh /execute-step.sh
-COPY step-utils/step-notify-finished.sh /finish-step.sh
 
 ENV FLINK_APPLICATION_JAR_NAME pilot-sc4-fcd-applications-0.1-jar-with-dependencies
 ENV FLINK_APPLICATION_MAIN_CLASS eu.bde.pilot.sc4.fcd.FlinkFcdProducer

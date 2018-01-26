@@ -5,11 +5,12 @@ services:
             context: ./sc4-zookeeper
         image: bde2020/pilot-sc4-zookeeper
         hostname: zookeeper
+        container_name: sc4-zookeeper
         environment:
             - MYID=1
-#            - ENABLE_INIT_DAEMON=true
 #            - INIT_DAEMON_STEP=setup_zookeeper
 #            - INIT_DAEMON_BASE_URI=http://backend/init-daemon 
+#            - ENABLE_INIT_DAEMON=true
         expose:
             - "2181"
         ports:
@@ -19,112 +20,117 @@ services:
             context: ./sc4-kafka
         image: bde2020/pilot-sc4-kafka
         hostname: kafka
+        container_name: sc4-kafka
         environment:
             - ZOOKEEPER_SERVERS=zookeeper:2181
-            - INITIAL_TOPICS="taxi"
-#            - ENABLE_INIT_DAEMON=true
 #            - INIT_DAEMON_STEP=setup_kafka
+#            - ENABLE_INIT_DAEMON=true
+            - INITIAL_TOPICS="taxi"
 #            - INIT_DAEMON_BASE_URI=http://backend/init-daemon 
         depends_on:
             - zookeeper
         expose:
             - "9092"
 
+#-----------------------------------------------------------------------------
+# hadoop services
     namenode:
-        image: bde2020/hadoop-namenode:1.1.0-hadoop2.7.1-java8
+        image: bde2020/hadoop-namenode:2.0.0-hadoop2.7.4-java8
         hostname: namenode
+        container_name: sc4-namenode
+#        volumes:
+#            - hadoop_namenode:/hadoop/dfs/name
         environment:
             CSS_SOURCE: "hadoop"
             CLUSTER_NAME: test
             INIT_DAEMON_STEP: "setup_hdfs"
             VIRTUAL_HOST: hdfs-namenode.big-data-europe.local
         env_file:
-            - ./config/hadoop/hadoop.env
-#     volumes:
-#           - ./data/hadoop/namenode:/hadoop/dfs/name
-        expose:
-            - "50070"
+            - ./hadoop.env
+
     datanode:
-        image: bde2020/hadoop-datanode:1.1.0-hadoop2.7.1-java8
+        image: bde2020/hadoop-datanode:2.0.0-hadoop2.7.4-java8
         hostname: datanode
+        container_name: sc4-datanode
+#        volumes:
+#            - hadoop_datanode:/hadoop/dfs/data
         environment:
-              CSS_SOURCE: "hadoop"
-              VIRTUAL_HOST: hdfs-datanode.big-data-europe.local
-              VIRTUAL_PORT: "50075"
+            SERVICE_PRECONDITION: "namenode:50070"
+            CSS_SOURCE: "hadoop"
+            VIRTUAL_HOST: hdfs-datanode.big-data-europe.local
+            VIRTUAL_PORT: "50075"
+            ENABLE_INIT_DAEMON: "false"
         env_file:
-            - ./config/hadoop/hadoop.env
-#       volumes:
-#           - ./data/hadoop/datanode:/hadoop/dfs/data
-        depends_on:
-            - namenode
-        expose:
-            - "50075"
+            - ./hadoop.env
+
     resourcemanager:
-        image: bde2020/hadoop-resourcemanager:1.1.0-hadoop2.7.1-java8
+        image: bde2020/hadoop-resourcemanager:2.0.0-hadoop2.7.4-java8
         hostname: resourcemanager
-        expose:
-            - "8031"
-            - "8088"
+        container_name: sc4-resourcemanager
         environment:
+            SERVICE_PRECONDITION: "namenode:50070 datanode:50075"
             VIRTUAL_HOST: hdfs-resourcemanager.demo.big-data-europe.local
             VIRTUAL_PORT: "8088"
             CSS_SOURCE: "hadoop-resource-manager"
         env_file:
-            - ./config/hadoop/hadoop.env
-        depends_on:
-              - namenode
-              - datanode
-    historyserver:
-        image: bde2020/hadoop-historyserver:1.1.0-hadoop2.7.1-java8
-        hostname: historyserver
-#       volumes:
-#           - ./data/hadoop/historyserver:/hadoop/yarn/timeline
-        env_file:
-            - ./config/hadoop/hadoop.env
-        environment:
-            VIRTUAL_HOST: hdfs-historyserver.demo.big-data-europe.local
-            VIRTUAL_PORT: "8188"
-            CSS_SOURCE: "hadoop-history-server"
-        depends_on:
-              - namenode
-              - datanode
+            - ./hadoop.env
+
     nodemanager:
-        image: bde2020/hadoop-nodemanager:1.1.0-hadoop2.7.1-java8
+        image: bde2020/hadoop-nodemanager:2.0.0-hadoop2.7.4-java8
         hostname: nodemanager
-        expose:
-            - "8042"
+        container_name: sc4-nodemanager
         environment:
+            SERVICE_PRECONDITION: "namenode:50070 datanode:50075 resourcemanager:8088"
             VIRTUAL_HOST: hdfs-nodemanager.demo.big-data-europe.local
             VIRTUAL_PORT: "8042"
             CSS_SOURCE: "hadoop-node-manager"
         env_file:
-            - ./config/hadoop/hadoop.env
-        depends_on:
-              - namenode
-              - datanode
+            - ./hadoop.env
+
+    historyserver:
+        image: bde2020/hadoop-historyserver:2.0.0-hadoop2.7.4-java8
+        hostname: historyserver
+        container_name: sc4-historyserver
+#        volumes:
+#            - hadoop_historyserver:/hadoop/yarn/timeline
+        environment:
+            SERVICE_PRECONDITION: "namenode:50070 datanode:50075 resourcemanager:8088"
+            VIRTUAL_HOST: hdfs-historyserver.demo.big-data-europe.local
+            VIRTUAL_PORT: "8188"
+            CSS_SOURCE: "hadoop-history-server"
+        env_file:
+            - ./hadoop.env
+
     filebrowser:
         image: bde2020/hdfs-filebrowser
         hostname: filebrowser
+        container_name: sc4-filebrowser
         expose:
             - "8088"
         environment:
-              NAMENODE_HOST: namenode
-              VIRTUAL_HOST: hue.big-data-europe.local
-              VIRTUAL_PORT: "8088"
+            SERVICE_PRECONDITION: "namenode:50070 datanode:50075"
+            NAMENODE_HOST: namenode
+            VIRTUAL_HOST: hue.big-data-europe.local
+            VIRTUAL_PORT: "8088"
         depends_on:
             - namenode
             - datanode
+
+#-----------------------------------------------------------------------------
     flink-master:
-        image: bde2020/flink-master:1.2.0-hadoop2.7
+        image: bde2020/flink-master:1.4.0-hadoop2.7
         hostname: flink-master
+        container_name: sc4-flink-master
         expose:
-              - "8081"
-              - "8080"
+            - "8081"
+            - "8080"
         environment:
-              CSS_SOURCE: "flink-dashboard"
-              INIT_DAEMON_STEP: "setup_flink"
-              VIRTUAL_HOST: flink-master.big-data-europe.local
-              VIRTUAL_PORT: "8081"
+            SERVICE_PRECONDITION: "namenode:50070 datanode:50075"
+            CSS_SOURCE: "flink-dashboard"
+            ENABLE_INIT_DAEMON: "false"
+            INIT_DAEMON_STEP: "setup_flink"
+            VIRTUAL_HOST: flink-master.big-data-europe.local
+            VIRTUAL_PORT: "8081"
 #       volumes:
 #             - ./data/flink-master:/data
         env_file:
@@ -132,61 +138,87 @@ services:
         depends_on:
               - namenode
               - datanode
+
     flink-worker:
-        image: bde2020/flink-worker:1.2.0-hadoop2.7
+        image: bde2020/flink-worker:1.4.0-hadoop2.7
         hostname: flink-worker
+        container_name: sc4-flink-worker
         environment:
-              FLINK_MASTER_PORT_6123_TCP_ADDR: "flink-master"
-              CSS_SOURCE: "flink-dashboard"
-              VIRTUAL_HOST: flink-worker.big-data-europe.local
-              VIRTUAL_PORT: "8080"
+            SERVICE_PRECONDITION: "flink-master:8081"
+            FLINK_MASTER_PORT_6123_TCP_ADDR: "flink-master"
+            FLINK_NUM_TASK_SLOTS: "2"
+            CSS_SOURCE: "flink-dashboard"
+            ENABLE_INIT_DAEMON: "false"
+            VIRTUAL_HOST: flink-worker.big-data-europe.local
+            VIRTUAL_PORT: "8080"
         depends_on:
               - flink-master
+
+    producer:
+        image: bde2020/pilot-sc4-producer
+        hostname: producer
+        container_name: sc4-producer
+        build:
+            context: .
+            dockerfile: sc4-producer.dockerfile
+        environment:
+            SERVICE_PRECONDITION: "flink-master:8081 kafka:9092"
+            HDFS_URL: hdfs://namenode:8020
+            ENABLE_INIT_DAEMON: "false"
+            INIT_DAEMON_STEP: floating_producer
+            FLINK_MASTER_PORT_6123_TCP_ADDR: "flink-master"
+            FLINK_MASTER_PORT_6123_TCP_PORT: "6123"
+            FLINK_APPLICATION_ARGS: "--path hdfs://namenode:8020/user/hue/taxi_sample_5k.txt --topic taxi"
+            INIT_DAEMON_BASE_URI: "http://backend/init-daemon"
+        env_file:
+            - ./config/hadoop/hadoop.env
+
+    consumer:
+        image: bde2020/pilot-sc4-consumer
+        hostname: consumer
+        container_name: sc4-consumer
+        build:
+            context: .
+            dockerfile: sc4-consumer.dockerfile
+        environment:
+            SERVICE_PRECONDITION: "flink-master:8081 kafka:9092"
+            HDFS_URL: hdfs://namenode:8020
+            ENABLE_INIT_DAEMON: "false"
+            INIT_DAEMON_STEP: floating_consumer
+            FLINK_MASTER_PORT_6123_TCP_ADDR: "flink-master"
+            FLINK_MASTER_PORT_6123_TCP_PORT: "6123"
+            INIT_DAEMON_BASE_URI: "http://backend/init-daemon"
+        env_file:
+            - ./config/hadoop/hadoop.env
+
+
+#-----------------------------------------------------------------------------
     elasticsearch:
         image: bde2020/sc4-elasticsearch
         hostname: elasticsearch
+        container_name: sc4-elasticsearch
+        environment:
+            VIRTUAL_HOST: elasticsearch.big-data-europe.local
+            VIRTUAL_PORT: "9200"
         build:
             context: sc4-elasticsearch/
         ports:
             - 9200:9200
             - 9300:9300
+
     kibana:
 #        image: kibana:6.1.0
         image: kibana:4.5.0
         hostname: kibana
+        container_name: sc4-kibana
         environment:
+            SERVICE_PRECONDITION: "elasticsearch:9200"
             ELASTICSEARCH_URL: http://elasticsearch:9200
+            VIRTUAL_HOST: kibana.big-data-europe.local
+            VIRTUAL_PORT: "5601"
         ports:
             - 5601:5601
-    producer:
-        image: bde2020/pilot-sc4-producer
-        hostname: producer
-        build:
-            context: .
-            dockerfile: sc4-producer.dockerfile
-        environment:
-              HDFS_URL: hdfs://namenode:8020
-              FLINK_MASTER_PORT_6123_TCP_ADDR: "flink-master"
-              FLINK_MASTER_PORT_6123_TCP_PORT: "6123"
-              FLINK_APPLICATION_ARGS: "--path hdfs://namenode:8020/user/hue/taxi_sample_5k.txt --topic taxi"
-              INIT_DAEMON_STEP: floating_producer
-              INIT_DAEMON_BASE_URI: "http://backend/init-daemon"
-        env_file:
-              - ./config/hadoop/hadoop.env
-    consumer:
-        image: bde2020/pilot-sc4-consumer
-        hostname: consumer
-        build:
-            context: .
-            dockerfile: sc4-consumer.dockerfile
-        environment:
-              HDFS_URL: hdfs://namenode:8020
-              FLINK_MASTER_PORT_6123_TCP_ADDR: "flink-master"
-              FLINK_MASTER_PORT_6123_TCP_PORT: "6123"
-              INIT_DAEMON_STEP: floating_consumer
-              INIT_DAEMON_BASE_URI: "http://backend/init-daemon"
-        env_file:
-              - ./config/hadoop/hadoop.env
+
 #-----------------------------------------------------------------------------
 # monitor and intialisation framework
     monitor:
@@ -267,4 +299,6 @@ services:
 networks:
     default:
         driver: overlay
+#       external:
+#           name: sc4net
 

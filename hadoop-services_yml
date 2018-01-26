@@ -1,0 +1,88 @@
+#-----------------------------------------------------------------------------
+    namenode:
+        image: bde2020/hadoop-namenode:1.1.0-hadoop2.7.1-java8
+        hostname: namenode
+        environment:
+            CSS_SOURCE: "hadoop"
+            CLUSTER_NAME: test
+            INIT_DAEMON_STEP: "setup_hdfs"
+            VIRTUAL_HOST: hdfs-namenode.big-data-europe.local
+        env_file:
+            - ./config/hadoop/hadoop.env
+#     volumes:
+#           - ./data/hadoop/namenode:/hadoop/dfs/name
+        expose:
+            - "50070"
+    datanode:
+        image: bde2020/hadoop-datanode:1.1.0-hadoop2.7.1-java8
+        hostname: datanode
+        environment:
+              CSS_SOURCE: "hadoop"
+              VIRTUAL_HOST: hdfs-datanode.big-data-europe.local
+              VIRTUAL_PORT: "50075"
+              ENABLE_INIT_DAEMON: "false"
+        env_file:
+            - ./config/hadoop/hadoop.env
+#       volumes:
+#           - ./data/hadoop/datanode:/hadoop/dfs/data
+        depends_on:
+            - namenode
+        expose:
+            - "50075"
+    resourcemanager:
+        image: bde2020/hadoop-resourcemanager:1.1.0-hadoop2.7.1-java8
+        hostname: resourcemanager
+        expose:
+            - "8031"
+            - "8088"
+        environment:
+            VIRTUAL_HOST: hdfs-resourcemanager.demo.big-data-europe.local
+            VIRTUAL_PORT: "8088"
+            CSS_SOURCE: "hadoop-resource-manager"
+        env_file:
+            - ./config/hadoop/hadoop.env
+        depends_on:
+              - namenode
+              - datanode
+    historyserver:
+        image: bde2020/hadoop-historyserver:1.1.0-hadoop2.7.1-java8
+        hostname: historyserver
+#       volumes:
+#           - ./data/hadoop/historyserver:/hadoop/yarn/timeline
+        env_file:
+            - ./config/hadoop/hadoop.env
+        environment:
+            VIRTUAL_HOST: hdfs-historyserver.demo.big-data-europe.local
+            VIRTUAL_PORT: "8188"
+            CSS_SOURCE: "hadoop-history-server"
+        depends_on:
+              - namenode
+              - datanode
+    nodemanager:
+        image: bde2020/hadoop-nodemanager:1.1.0-hadoop2.7.1-java8
+        hostname: nodemanager
+        expose:
+            - "8042"
+        environment:
+            VIRTUAL_HOST: hdfs-nodemanager.demo.big-data-europe.local
+            VIRTUAL_PORT: "8042"
+            CSS_SOURCE: "hadoop-node-manager"
+        env_file:
+            - ./config/hadoop/hadoop.env
+        depends_on:
+              - namenode
+              - datanode
+    filebrowser:
+        image: bde2020/hdfs-filebrowser
+        hostname: filebrowser
+        expose:
+            - "8088"
+        environment:
+              NAMENODE_HOST: namenode
+              VIRTUAL_HOST: hue.big-data-europe.local
+              VIRTUAL_PORT: "8088"
+        depends_on:
+            - namenode
+            - datanode
+
+#-----------------------------------------------------------------------------

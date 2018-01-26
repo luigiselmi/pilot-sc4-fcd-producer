@@ -6,6 +6,9 @@ import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaProducer010;
 
+import org.apache.flink.core.fs.FileSystem;
+import org.apache.flink.core.fs.Path;
+
 /**
  * This class provides the Flink execution plan for the ingestion of historical 
  * floating car data from the file system.
@@ -37,6 +40,24 @@ public class FlinkFcdProducer {
     // set up streaming execution environment
     StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
     env.setStreamTimeCharacteristic(TimeCharacteristic.EventTime);
+    
+    // ---------------------------------------
+    // 0)
+    // Wait for the file available
+    Path file = new Path(path);
+
+    FileSystem fileSystem = file.getFileSystem();
+    System.out.println("check exist: '" + path + "' -- Path file = '" + file + "'");
+
+    int sec = 0;
+    while (!fileSystem.exists(file)) {
+    	if ( sec%30 == 0) {
+			System.out.println("awaiting File " + file + " / " + sec + "sec");
+    	}
+        Thread.sleep(3000);
+    	sec += 3;
+    }
+    // -----------------------------------------
 
     // 1) source(), start the data generator
     DataStream<FcdTaxiEvent> taxiEventStream = env.addSource(new FcdTaxiSource(path, maxEventDelay, servingSpeedFactor));
