@@ -22,6 +22,7 @@ services:
         hostname: kafka
         container_name: sc4-kafka
         environment:
+            - SERVICE_PRECONDITION=zookeeper:2181
             - ZOOKEEPER_SERVERS=zookeeper:2181
 #            - INIT_DAEMON_STEP=setup_kafka
 #            - ENABLE_INIT_DAEMON=true
@@ -46,7 +47,7 @@ services:
             INIT_DAEMON_STEP: "setup_hdfs"
             VIRTUAL_HOST: hdfs-namenode.big-data-europe.local
         env_file:
-            - ./hadoop.env
+            - ./config/hadoop/hadoop.env
 
     datanode:
         image: bde2020/hadoop-datanode:2.0.0-hadoop2.7.4-java8
@@ -61,7 +62,7 @@ services:
             VIRTUAL_PORT: "50075"
             ENABLE_INIT_DAEMON: "false"
         env_file:
-            - ./hadoop.env
+            - ./config/hadoop/hadoop.env
 
     resourcemanager:
         image: bde2020/hadoop-resourcemanager:2.0.0-hadoop2.7.4-java8
@@ -73,7 +74,7 @@ services:
             VIRTUAL_PORT: "8088"
             CSS_SOURCE: "hadoop-resource-manager"
         env_file:
-            - ./hadoop.env
+            - ./config/hadoop/hadoop.env
 
     nodemanager:
         image: bde2020/hadoop-nodemanager:2.0.0-hadoop2.7.4-java8
@@ -85,7 +86,7 @@ services:
             VIRTUAL_PORT: "8042"
             CSS_SOURCE: "hadoop-node-manager"
         env_file:
-            - ./hadoop.env
+            - ./config/hadoop/hadoop.env
 
     historyserver:
         image: bde2020/hadoop-historyserver:2.0.0-hadoop2.7.4-java8
@@ -99,7 +100,7 @@ services:
             VIRTUAL_PORT: "8188"
             CSS_SOURCE: "hadoop-history-server"
         env_file:
-            - ./hadoop.env
+            - ./config/hadoop/hadoop.env
 
     filebrowser:
         image: bde2020/hdfs-filebrowser
@@ -163,12 +164,13 @@ services:
             dockerfile: sc4-producer.dockerfile
         environment:
             SERVICE_PRECONDITION: "flink-master:8081 kafka:9092"
+            START_DELAY: "20"
             HDFS_URL: hdfs://namenode:8020
             ENABLE_INIT_DAEMON: "false"
             INIT_DAEMON_STEP: floating_producer
             FLINK_MASTER_PORT_6123_TCP_ADDR: "flink-master"
             FLINK_MASTER_PORT_6123_TCP_PORT: "6123"
-            FLINK_APPLICATION_ARGS: "--path hdfs://namenode:8020/user/hue/taxi_sample_5k.txt --topic taxi"
+            FLINK_APPLICATION_ARGS: "--path hdfs://namenode:8020/user/hue/taxi_sample_10k.txt --topic taxi"
             INIT_DAEMON_BASE_URI: "http://backend/init-daemon"
         env_file:
             - ./config/hadoop/hadoop.env
@@ -182,6 +184,7 @@ services:
             dockerfile: sc4-consumer.dockerfile
         environment:
             SERVICE_PRECONDITION: "flink-master:8081 kafka:9092"
+            START_DELAY: "20"
             HDFS_URL: hdfs://namenode:8020
             ENABLE_INIT_DAEMON: "false"
             INIT_DAEMON_STEP: floating_consumer
@@ -206,18 +209,17 @@ services:
             - 9200:9200
             - 9300:9300
 
-    kibana:
-#        image: kibana:6.1.0
-        image: kibana:4.5.0
-        hostname: kibana
-        container_name: sc4-kibana
-        environment:
-            SERVICE_PRECONDITION: "elasticsearch:9200"
-            ELASTICSEARCH_URL: http://elasticsearch:9200
-            VIRTUAL_HOST: kibana.big-data-europe.local
-            VIRTUAL_PORT: "5601"
-        ports:
-            - 5601:5601
+#   kibana:
+#       image: kibana:5.6
+#       hostname: kibana
+#       container_name: sc4-kibana
+#       environment:
+#           SERVICE_PRECONDITION: "elasticsearch:9200"
+#           ELASTICSEARCH_URL: http://elasticsearch:9200
+#           VIRTUAL_HOST: kibana.big-data-europe.local
+#           VIRTUAL_PORT: "5601"
+#       ports:
+#           - 5601:5601
 
 #-----------------------------------------------------------------------------
 # monitor and intialisation framework
@@ -299,6 +301,4 @@ services:
 networks:
     default:
         driver: overlay
-#       external:
-#           name: sc4net
 
