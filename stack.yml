@@ -290,12 +290,16 @@ services:
 #           - ./config/integrator:/app/config
 
     csswrapper:
-        image: bde2020/nginx-proxy-with-css
+        image: bde2020/pilot-sc4-csswrapper
         hostname: csswrapper
+        build:
+            context: .
+            dockerfile: sc4-csswrapper.dockerfile
         ports:
             - 80:80
         volumes:
             - /var/run/docker.sock:/tmp/docker.sock:ro
+
 #        environment:
 #            - "constraint:node==172.26.0.175"
 #            - DOCKER_HOST=tcp://172.26.0.175:2377
