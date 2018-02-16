@@ -185,7 +185,7 @@ services:
             context: .
             dockerfile: sc4-consumer.dockerfile
         environment:
-            SERVICE_PRECONDITION: "flink-master:8081 kafka:9092"
+            SERVICE_PRECONDITION: "kafka:9092 elasticsearch:9200"
             FLINK_MASTER: "flink-master"
             REQUEST_SLOTS: 1
 #           START_DELAY: "20"
@@ -204,21 +204,21 @@ services:
         image: bde2020/sc4-elasticsearch
         hostname: elasticsearch
         container_name: sc4-elasticsearch
+        build:
+            context: sc4-elasticsearch/
         environment:
             VIRTUAL_HOST: elasticsearch.big-data-europe.local
             VIRTUAL_PORT: "9200"
-        build:
-            context: sc4-elasticsearch/
         ports:
             - 9200:9200
             - 9300:9300
 
     kibana:
-        image: kibana:4.6.6
+# 4.6.6 not compatible with elasticsearch 2.4.6
+        image: kibana:4.5.0
         hostname: kibana
         container_name: sc4-kibana
         environment:
-            SERVICE_PRECONDITION: "elasticsearch:9200"
             ELASTICSEARCH_URL: http://elasticsearch:9200
             VIRTUAL_HOST: kibana.big-data-europe.local
             VIRTUAL_PORT: "5601"
