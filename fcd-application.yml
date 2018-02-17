@@ -183,7 +183,6 @@ services:
             SERVICE_PRECONDITION: "flink-master:8081 kafka:9092"
             FLINK_MASTER: "flink-master"
             REQUEST_SLOTS: 1
-#           START_DELAY: "20"
             HDFS_URL: hdfs://namenode:8020
             ENABLE_INIT_DAEMON: "false"
             INIT_DAEMON_STEP: floating_producer
@@ -205,7 +204,6 @@ services:
             SERVICE_PRECONDITION: "kafka:9092 elasticsearch:9200"
             FLINK_MASTER: "flink-master"
             REQUEST_SLOTS: 1
-#           START_DELAY: "20"
             HDFS_URL: hdfs://namenode:8020
             ENABLE_INIT_DAEMON: "false"
             INIT_DAEMON_STEP: floating_consumer
