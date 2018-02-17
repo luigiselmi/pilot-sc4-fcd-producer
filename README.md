@@ -67,28 +67,33 @@ the Task Manager to run. From your Flink installation root folder open conf/flin
     
 to run the producer and the consumer in local.
 ### Nginx Configuration
-The Hue service currently doesn't allow to copy a file bigger than 1MB in HDFS. In order to overcome this problem after running the pilot with the docker-compose-initdaemon.yml file you have to enter the nginx-proxy-with-css (csswrapper) container 
+The HUE service may not accept uplaod of files bigger than defined maximum size. This is cause
+by the configuration of the image ``nginx-proxy-with-css`` (csswrapper) which forwards request and
+has a maximum size set for request bodies.
+In order to overcome this problem
+the ``nginx-proxy-with-css`` is derived into the image ``bde2020/pilot-sc4-csswrapper`` 
+and updated by copying a modified ``nginx.conf`` file,
 
-    $ docker exec -it csswrapper /bin/bash
-    
-The file /etc/nginx/nginx.conf must be updated in order to set the client_max_body_size parameter within the http section of the file to the size of the file that must be copied in HDFS. Since there's no editor in the container you must install one
+    config/nginx.conf
 
-    # apt-get update
-    # apt-get install vim
-    
-Open the nginx.conf file, add the client_max_body_size parameter and set its value (e.g. 200 MB)
+where the maximal size is set to 300M by setting the option  ``client_max_body_size``:
 
     http {
-        .....
-        client_max_body_size 200M;
+        ...
+        client_max_body_size 300M;
+        ...
     }
- 
-Leave the container with Ctrl-P Ctrl-Q and restart it
 
-    $ docker stop csswrapper
-    $ docker start csswrapper
-    
-Now Hue should accept files whose size is below the value set in nginx.conf  
+The derived image is defined in 
+
+    sc4-csswrapper.dockerfile
+
+and built by
+
+    docker-compose -f stack.yml build csswrapper
+
+If bigger files are to be uploaded by HUE, change the ``client_max_body_size`` and build again.
+
 
 ##Licence
 Apache 2.0
