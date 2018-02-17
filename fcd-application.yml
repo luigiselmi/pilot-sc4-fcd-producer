@@ -48,7 +48,10 @@ services:
             VIRTUAL_HOST: hdfs-namenode.big-data-europe.local
         env_file:
             - ./config/hadoop/hadoop.env
-
+#       volumes:
+#           - ./data/hadoop/namenode:/hadoop/dfs/name
+        expose:
+            - "50070"
     datanode:
         image: bde2020/hadoop-datanode:2.0.0-hadoop2.7.4-java8
         hostname: datanode
@@ -68,6 +71,9 @@ services:
         image: bde2020/hadoop-resourcemanager:2.0.0-hadoop2.7.4-java8
         hostname: resourcemanager
         container_name: sc4-resourcemanager
+        expose:
+            - "8031"
+            - "8088"
         environment:
             SERVICE_PRECONDITION: "namenode:50070 datanode:50075"
             VIRTUAL_HOST: hdfs-resourcemanager.demo.big-data-europe.local
@@ -75,11 +81,33 @@ services:
             CSS_SOURCE: "hadoop-resource-manager"
         env_file:
             - ./config/hadoop/hadoop.env
+        depends_on:
+              - namenode
+              - datanode
+    historyserver:
+        image: bde2020/hadoop-historyserver:2.0.0-hadoop2.7.4-java8
+        hostname: historyserver
+        container_name: sc4-historyserver
+#       volumes:
+#           - ./data/hadoop/historyserver:/hadoop/yarn/timeline
+        env_file:
+            - ./config/hadoop/hadoop.env
+        environment:
+            SERVICE_PRECONDITION: "namenode:50070 datanode:50075 resourcemanager:8088"
+            VIRTUAL_HOST: hdfs-historyserver.demo.big-data-europe.local
+            VIRTUAL_PORT: "8188"
+            CSS_SOURCE: "hadoop-history-server"
+        depends_on:
+              - namenode
+              - datanode
+              - resourcemanager
 
     nodemanager:
         image: bde2020/hadoop-nodemanager:2.0.0-hadoop2.7.4-java8
         hostname: nodemanager
         container_name: sc4-nodemanager
+        expose:
+            - "8042"
         environment:
             SERVICE_PRECONDITION: "namenode:50070 datanode:50075 resourcemanager:8088"
             VIRTUAL_HOST: hdfs-nodemanager.demo.big-data-europe.local
@@ -87,21 +115,10 @@ services:
             CSS_SOURCE: "hadoop-node-manager"
         env_file:
             - ./config/hadoop/hadoop.env
-
-    historyserver:
-        image: bde2020/hadoop-historyserver:2.0.0-hadoop2.7.4-java8
-        hostname: historyserver
-        container_name: sc4-historyserver
-#        volumes:
-#            - hadoop_historyserver:/hadoop/yarn/timeline
-        environment:
-            SERVICE_PRECONDITION: "namenode:50070 datanode:50075 resourcemanager:8088"
-            VIRTUAL_HOST: hdfs-historyserver.demo.big-data-europe.local
-            VIRTUAL_PORT: "8188"
-            CSS_SOURCE: "hadoop-history-server"
-        env_file:
-            - ./config/hadoop/hadoop.env
-
+        depends_on:
+              - namenode
+              - datanode
+              - resourcemanager
     filebrowser:
         image: bde2020/hdfs-filebrowser
         hostname: filebrowser
@@ -247,7 +264,7 @@ services:
             dockerfile: sc4-dispatcher.dockerfile
         image: bde2020/pilot-sc4-dispatcher
         hostname: dispatcher
-# config/dispatcher.ex is copied into the image, see dockerfile
+# config/dispatcher.ex is copied into the image, see sc4-dispatcher.dockerfile
 # for development bind this volume into the container
 #       volumes:
 #           - ./config:/config
@@ -263,7 +280,7 @@ services:
             - DEFAULT_GRAPH=http://mu.semte.ch/application
             - VIRTUAL_HOST=virtuoso.big-data-europe.local
             - VIRTUAL_PORT=8890
-# database/toLoad/pipeline.ttl is copied into the image, see dockerfile
+# database/toLoad/pipeline.ttl is copied into the image, see sc4-database.dockerfile
 # for development bind this volume into the container
 #        volumes:
 #            - ./data/database:/data
@@ -284,7 +301,7 @@ services:
         hostname: integratorui
         environment:
             VIRTUAL_HOST: demo.big-data-europe.local
-# config/integrator/user-interfaces is copied into the image, see dockerfile
+# config/integrator/user-interfaces is copied into the image, see sc4-integratorui.dockerfile
 # for development bind this volume into the container
 #       volumes:
 #           - ./config/integrator:/app/config
@@ -299,12 +316,17 @@ services:
             - 80:80
         volumes:
             - /var/run/docker.sock:/tmp/docker.sock:ro
+# config/nginx.conf copied into the image, see sc4-csswrapper.dockerfile
+# for development bind this volume into the container
+#           - config/nginx.conf:/etc/nginx/nginx.conf
 
+# ??? setup for running in an cluster. set the IP-Address of swarm master
+# ??? this did not run yet
 #        environment:
 #            - "constraint:node==172.26.0.175"
 #            - DOCKER_HOST=tcp://172.26.0.175:2377
 
-# into the image define docker host
+# into the image define docker hosit
 
 networks:
     default:
