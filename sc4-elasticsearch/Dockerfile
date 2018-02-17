@@ -1,5 +1,3 @@
-# from https://github.com/big-data-europe/docker-kafka
-
 FROM elasticsearch:2.4.6
 
 MAINTAINER Karl-Heinz Sylla <karl-heinz.sylla@iais.fraunhofer.de>
