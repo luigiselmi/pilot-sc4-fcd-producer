@@ -28,17 +28,9 @@
     "id": 4,
     "type": "user-interfaces",
     "attributes": {
-      "label": "Virtuoso",
-      "base-url": "http://virtuoso.big-data-europe.local"
+      "label": "Kibana",
+      "base-url": "http://kibana.big-data-europe.local",
+      "append-path": ""
     }
-  },
-  {
-    "id": 5,
-    "type": "user-interfaces",
-    "attributes": {
-      "label": "Monitor",
-      "base-url": "http://monitor.big-data-europe.local"
-    }
-  }
-]
+  }]
 }

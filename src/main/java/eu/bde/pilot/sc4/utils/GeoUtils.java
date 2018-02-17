@@ -21,8 +21,8 @@ public class GeoUtils {
 	public static double LAT_DEG = LAT_NORTH - LAT_SOUTH;
 	
 	// Number of grid lines along the longitude and latitude
-	public static int LON_GRID_LINES = 4;
-	public static int LAT_GRID_LINES = 4;
+	public static int LON_GRID_LINES = 100;
+	public static int LAT_GRID_LINES = 100;
 
 	// angular distances between grid lines along the longitude and the latitude
 	public static double DELTA_LON = LON_DEG / LON_GRID_LINES;

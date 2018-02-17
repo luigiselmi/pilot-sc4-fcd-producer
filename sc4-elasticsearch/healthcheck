@@ -4,7 +4,7 @@ set -e
 
 export R=$( (curl -fs localhost:9200) > /dev/null && echo ok )
 
-echo XXXXXXXXXXXXXXX $R
+echo elasticsearch $0 $R
 
 if [[ "$R" == "ok" ]]; then
     exit 0

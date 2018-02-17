@@ -8,9 +8,9 @@
 #
 #    $ docker run -d --network pilot-sc4 --name fcd-consumer bde2020/pilot-sc4-fcd-consumer:v0.0.1
 
-FROM bde2020/flink-maven-template:1.2.0-hadoop2.7
+FROM bde2020/flink-maven-template:1.4.0-hadoop2.7
 
-MAINTAINER Luigi Selmi <luigiselmi@gmail.com>
+MAINTAINER Luigi Selmi <luigiselmi@gmail.com>, Karl-Heinz Sylla <karl-heinz.sylla@iais.fraunhofer.de>
 
 ENV FLINK_APPLICATION_JAR_NAME pilot-sc4-fcd-applications-0.1-jar-with-dependencies
 ENV FLINK_APPLICATION_MAIN_CLASS eu.bde.pilot.sc4.fcd.FlinkFcdConsumer
