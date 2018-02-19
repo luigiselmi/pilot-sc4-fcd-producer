@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.URI;
 import java.util.Calendar;
 import java.util.zip.GZIPInputStream;
@@ -14,11 +15,16 @@ import org.apache.flink.streaming.api.watermark.Watermark;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.IOUtils;
+import org.apache.hadoop.io.compress.CompressionCodec;
+import org.apache.hadoop.io.compress.CompressionCodecFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 
 public class FcdTaxiSource implements SourceFunction<FcdTaxiEvent>{
-	
+  private static final Logger log = LoggerFactory.getLogger(FcdTaxiSource.class);
 	//private final int watermarkDelayMSecs = 1000;
 	private int maxDelayMsecs = 1000;
 	private long watermarkDelayMSecs = (maxDelayMsecs < 10000) ? 10000 : maxDelayMsecs;
@@ -37,11 +43,25 @@ public class FcdTaxiSource implements SourceFunction<FcdTaxiEvent>{
 	/**
 	 * Reads txt file
 	 */
-	/*
 	@Override
 	public void run(SourceContext<FcdTaxiEvent> sourceContext) throws Exception {
 	  
-    if(dataFilePath.startsWith("hdfs:")) {
+	  if(dataFilePath.endsWith(".gz"))
+	  {
+	    readGzipFile(sourceContext);
+	  }
+	  else {
+	    readTextFile(sourceContext);
+	  }
+
+	}
+	/**
+	 * Reads text file
+	 * @param sourceContext
+	 * @throws Exception
+	 */
+	private void readTextFile(SourceContext<FcdTaxiEvent> sourceContext) throws Exception {
+	  if(dataFilePath.startsWith("hdfs:")) {
       Configuration conf = new Configuration();
       FileSystem fs = FileSystem.get(URI.create(dataFilePath), conf);
       inputStream = fs.open(new Path(dataFilePath));
@@ -49,28 +69,46 @@ public class FcdTaxiSource implements SourceFunction<FcdTaxiEvent>{
     else {
       inputStream = new FileInputStream(dataFilePath);
     }
-		
+    
     reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
-		
-		generateStream(sourceContext);
+    
+    generateStream(sourceContext);
 
-		this.reader.close();
-		this.reader = null;
-		this.inputStream.close();
-		this.inputStream = null;
-
+    this.reader.close();
+    this.reader = null;
+    this.inputStream.close();
+    this.inputStream = null;
 	}
-	*/
+
 	/**
-	 * Reads gzipped files
+	 * Unzip the gzipped files and creates a copy. 
 	 */
-	@Override
-  public void run(SourceContext<FcdTaxiEvent> sourceContext) throws Exception {
+  private void readGzipFile(SourceContext<FcdTaxiEvent> sourceContext) throws Exception {
     
     if(dataFilePath.startsWith("hdfs:")) {
+      Path inputPath = new Path(dataFilePath);
       Configuration conf = new Configuration();
       FileSystem fs = FileSystem.get(URI.create(dataFilePath), conf);
-      inputStream = new GZIPInputStream(new FileInputStream(dataFilePath));
+      CompressionCodecFactory factory = new CompressionCodecFactory(conf);
+      CompressionCodec codec = factory.getCodec(inputPath);
+      if (codec == null) {
+          System.err.println("No codec found for " + dataFilePath);
+          System.exit(1);
+      }
+      String outputUri =
+          CompressionCodecFactory.removeSuffix(dataFilePath, codec.getDefaultExtension());
+      InputStream in = null;
+      OutputStream out = null;
+      try {
+          in = codec.createInputStream(fs.open(inputPath));
+          out = fs.create(new Path(outputUri));
+          IOUtils.copyBytes(in, out, conf);
+      } finally {
+          IOUtils.closeStream(in);
+          IOUtils.closeStream(out);
+      }
+      
+      inputStream = fs.open(new Path(outputUri));
     }
     
     reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
