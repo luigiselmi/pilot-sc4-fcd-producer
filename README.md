@@ -28,7 +28,7 @@ This component can be run as a Java application passing some arguments to select
 ### Floating Car Data Producer 
 In order to start a producer run the following command
 
-    $ java -jar target/pilot-sc4-fcd-applications-0.1-jar-with-dependencies.jar producer -path <path_to_the_gzipped_file> -topic <a kafka topic>
+    $ java -jar target/pilot-sc4-fcd-applications-0.10.0-jar-with-dependencies.jar producer -path <path_to_the_gzipped_file> -topic <a kafka topic>
 
 The job can also be started from the Flink JobManager, see the [Flink JobManager Quick Star Setup](https://ci.apache.org/projects/flink/flink-docs-release-1.2/quickstart/setup_quickstart.html#start-a-local-flink-cluster) 
 to learn how to do it. Once Flink is started you can submit a job uploading the project jar file and setting the following parameters
@@ -40,18 +40,18 @@ to learn how to do it. Once Flink is started you can submit a job uploading the 
 ### Floating Car Data Consumer
 In order to start a consumer run the following command
 
-    $ java -jar target/pilot-sc4-fcd-applications-0.1-jar-with-dependencies.jar consumer -topic <a kafka topic> -window <minutess>
+    $ java -jar target/pilot-sc4-fcd-applications-0.10.0-jar-with-dependencies.jar consumer-elasticsearch -topic <a kafka topic> -window <minutess>
 
 This job can also be started from the Flink JobManager using the same jar file (you don't have to upload it again) and setting the 
 following parameters  
 
-    Entry Class: eu.bde.pilot.sc4.fcd.FlinkFcdConsumer
+    Entry Class: eu.bde.pilot.sc4.fcd.FlinkFcdConsumerElasticsearch
     Program Arguments: --topic <a kafka topic> --window <minutes>
     
 ### Floating Car Data Map-Match
 In order to start the map-match run the following command
 
-    $ java -jar target/pilot-sc4-fcd-applications-0.1-jar-with-dependencies.jar mapmatch -topic <a kafka topic> -window <minutes>
+    $ java -jar target/pilot-sc4-fcd-applications-0.10.0-jar-with-dependencies.jar mapmatch -topic <a kafka topic> -window <minutes>
 
 You can submit the MapMatch job to the Flink Job manager setting the following parameters  
 

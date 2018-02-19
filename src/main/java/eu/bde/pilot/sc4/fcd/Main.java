@@ -18,8 +18,11 @@ public class Main {
 		        case "producer":
 		            FlinkFcdProducer.main(Arrays.copyOfRange(args, 1, args.length));
 		            break;
-		        case "consumer":
-		            FlinkFcdConsumer.main(Arrays.copyOfRange(args, 1, args.length));
+		        case "consumer-hdfs":
+		            FlinkFcdConsumerHdfs.main(Arrays.copyOfRange(args, 1, args.length));
+		            break;
+		        case "consumer-elasticsearch":
+		            FlinkFcdConsumerElasticsearch.main(Arrays.copyOfRange(args, 1, args.length));
 		            break;
 		        case "mapmatch":
                 FlinkMapMatch.main(Arrays.copyOfRange(args, 1, args.length));

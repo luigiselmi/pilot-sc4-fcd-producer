@@ -1,11 +1,8 @@
 package eu.bde.pilot.sc4.fcd;
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.URI;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,17 +10,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import org.apache.commons.compress.utils.IOUtils;
 import org.apache.flink.api.common.functions.MapFunction;
 import org.apache.flink.api.common.functions.RuntimeContext;
 import org.apache.flink.api.java.tuple.Tuple;
 import org.apache.flink.api.java.tuple.Tuple1;
 import org.apache.flink.api.java.tuple.Tuple2;
-import org.apache.flink.api.java.tuple.Tuple3;
 import org.apache.flink.api.java.tuple.Tuple5;
-import org.apache.flink.api.java.tuple.Tuple9;
 import org.apache.flink.api.java.utils.ParameterTool;
-import org.apache.flink.runtime.fs.hdfs.HadoopDataOutputStream;
 import org.apache.flink.streaming.api.TimeCharacteristic;
 import org.apache.flink.streaming.api.datastream.DataStream;
 import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
@@ -34,22 +27,10 @@ import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
 import org.apache.flink.streaming.connectors.elasticsearch2.ElasticsearchSink;
 import org.apache.flink.streaming.connectors.elasticsearch2.ElasticsearchSinkFunction;
 import org.apache.flink.streaming.connectors.elasticsearch2.RequestIndexer;
-import org.apache.flink.streaming.connectors.fs.SequenceFileWriter;
-import org.apache.flink.streaming.connectors.fs.bucketing.BucketingSink;
-import org.apache.flink.streaming.connectors.fs.bucketing.DateTimeBucketer;
 import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer010;
 import org.apache.flink.util.Collector;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.IntWritable;
-import org.apache.hadoop.util.Progressable;
 import org.elasticsearch.action.index.IndexRequest;
-import org.elasticsearch.action.index.IndexRequestBuilder;
 import org.elasticsearch.client.Requests;
-import org.elasticsearch.common.transport.InetSocketTransportAddress;
-import org.elasticsearch.common.transport.TransportAddress;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
 import org.slf4j.Logger;
@@ -75,7 +56,7 @@ import eu.bde.pilot.sc4.utils.GeoUtils;
  * @author Luigi Selmi
  *
  */
-public class FlinkFcdConsumerHdfs {
+public class FlinkFcdConsumerElasticsearch {
 	
   private static String KAFKA_TOPIC_PARAM_NAME = "topic";
   private static String KAFKA_TOPIC_PARAM_VALUE = null;
@@ -84,17 +65,16 @@ public class FlinkFcdConsumerHdfs {
   private static String HDFS_SINK_PARAM_VALUE = null;
   private static int TIME_WINDOW_PARAM_VALUE = 0;
   private static final int MAX_EVENT_DELAY = 60; // events are at most 60 sec out-of-order.
-  private static final Logger log = LoggerFactory.getLogger(FlinkFcdConsumerHdfs.class);
+  private static final Logger log = LoggerFactory.getLogger(FlinkFcdConsumerElasticsearch.class);
 
   public static void main(String[] args) throws Exception {
 	  
 	ParameterTool parameter = ParameterTool.fromArgs(args);
     
     if (parameter.getNumberOfParameters() < 3) {
-      throw new IllegalArgumentException("The application needs three arguments, \n" +
+      throw new IllegalArgumentException("The application needs two arguments, \n" +
       		 "the name of the Kafka topic, \n" +
-             "the size of the window, in minutes, \n"
-    		+ "and the path to the file on hdfs where the aggregations will be stored."  );
+             "the size of the window, in minutes. \n" );
     }
     
     KAFKA_TOPIC_PARAM_VALUE = parameter.get(KAFKA_TOPIC_PARAM_NAME);
@@ -138,13 +118,12 @@ public class FlinkFcdConsumerHdfs {
 			.timeWindow(Time.minutes(TIME_WINDOW_PARAM_VALUE))
 			.apply(new EventCounter());
 	
-	  // stores the data in Hadoop HDFS
-	  saveFcdDataHdfs(boxBoundedEvents, HDFS_SINK_PARAM_VALUE);
-	 
+	  // stores the data in Elasticsearch
+	  saveFcdDataElasticsearch(boxBoundedEvents);
 	  
 	  //boxBoundedEvents.print();
     
-      env.execute("Read Historic Floating Cars Data from Kafka");
+    env.execute("Read Historic Floating Cars Data from Kafka");
   
   
   }
@@ -218,38 +197,43 @@ public class FlinkFcdConsumerHdfs {
   }
   
   /**
-   * @param inputStream
-   * @param sinkPath
-   * @throws IOException 
-   */
-  public static void saveGridDataHdfs(DataStream<Tuple5<Integer, Double, Double, Integer ,String>> inputStream, String sinkPath) throws IOException {
-	Configuration conf = new Configuration();
-	URI uri = URI.create(sinkPath);
-	FileSystem hdfs = FileSystem.get(uri,conf);
-	Path file = new Path(sinkPath);
-	if(hdfs.exists(file)) {
-		hdfs.delete(file, true);
-	}
-	FSDataOutputStream os = hdfs.create(file);
-	HadoopDataOutputStream hos = new HadoopDataOutputStream(os);
-	//IOUtils.copy(inputStream.p, os);
-	//hos.write(inputStream.print());
-	
-  }
-  /**
-   * Writes the data in Hadoop HDFS  
+   * Stores the data in Elasticsearch  
    * @param inputStream
    * @throws UnknownHostException
    */
-  public static void saveFcdDataHdfs(DataStream<Tuple5<Integer, Double, Double, Integer ,String>> inputStream, String sinkPath) throws UnknownHostException {
-	BucketingSink<Tuple5<Integer, Double, Double, Integer ,String>> sink = new BucketingSink<Tuple5<Integer, Double, Double, Integer ,String>>(sinkPath);
-	sink.setBucketer(new DateTimeBucketer<Tuple5<Integer, Double, Double, Integer ,String>>("yyyy-MM-dd--HHmm"));
-	//sink.setWriter(new SequenceFileWriter<IntWritable, Text>());
+	public static void saveFcdDataElasticsearch(
+			DataStream<Tuple5<Integer, Double, Double, Integer, String>> inputStream) throws UnknownHostException {
+		Map<String, String> config = new HashMap<>();
+		// This instructs the sink to emit after every element, otherwise they would be
+		// buffered
+		config.put("bulk.flush.max.actions", "1");
+		config.put("cluster.name", "elasticsearch");
 
-	sink.setBatchSize(1024 * 1); // this is 1 KB
-  
-    inputStream.addSink(sink);
-    
-  }
+		List<InetSocketAddress> transports = new ArrayList<InetSocketAddress>();
+		log.info("XXXXX (InetAddress.getByName(elasticsearch), 9300))");
+		transports.add(new InetSocketAddress(InetAddress.getByName("elasticsearch"), 9300));
+
+		inputStream.addSink(new ElasticsearchSink<Tuple5<Integer, Double, Double, Integer, String>>(config, transports,
+				new ElasticsearchSinkFunction<Tuple5<Integer, Double, Double, Integer, String>>() {
+
+					public IndexRequest createIndexRequest(Tuple5<Integer, Double, Double, Integer, String> record) {
+						Map<String, Object> json = new HashMap<>();
+						json.put("cellid", record.f0);
+						json.put("location", record.f1.toString() + "," + record.f2.toString()); // lat,lon
+						json.put("vehicles", record.f3);
+						json.put("timestamp", record.f4);
+
+						return Requests.indexRequest().index("thessaloniki").type("floating-cars").source(json);
+
+					}
+
+					@Override
+					public void process(Tuple5<Integer, Double, Double, Integer, String> record, RuntimeContext ctx,
+							RequestIndexer indexer) {
+						indexer.add(createIndexRequest(record));
+
+					}
+				}));
+	}
 
 }
