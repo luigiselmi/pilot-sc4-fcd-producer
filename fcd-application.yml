@@ -188,7 +188,7 @@ services:
             INIT_DAEMON_STEP: floating_producer
             FLINK_MASTER_PORT_6123_TCP_ADDR: "flink-master"
             FLINK_MASTER_PORT_6123_TCP_PORT: "6123"
-            FLINK_APPLICATION_ARGS: "--path hdfs://namenode:8020/user/hue/taxi_sample_100k.csv.gz --topic taxi"
+            FLINK_APPLICATION_ARGS: "--path hdfs://namenode:8020/user/hue/taxi_sample_100k.csv --topic taxi"
             INIT_DAEMON_BASE_URI: "http://backend/init-daemon"
         env_file:
             - ./config/hadoop/hadoop.env
