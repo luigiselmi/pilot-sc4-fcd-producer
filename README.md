@@ -1,5 +1,5 @@
-Pilot SC4 Floating Car Data Applications
-===============================================
+Pilot SC4 - Floating Car Data Analysis
+======================================
 This repository contains [Apache Flink](http://flink.apache.org/) programs that produce, consume and process traffic data.
 The producer (FlinkFcdProducer.java) reads the records from a gzipped file in the file system and write them in a [Kafka](http://kafka.apache.org/)
 topic in binary format ([Avro](http://avro.apache.org/)).
