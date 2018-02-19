@@ -7,11 +7,14 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URI;
 import java.util.Calendar;
+import java.util.zip.GZIPInputStream;
+
 import org.apache.flink.streaming.api.functions.source.SourceFunction;
 import org.apache.flink.streaming.api.watermark.Watermark;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+
 
 
 public class FcdTaxiSource implements SourceFunction<FcdTaxiEvent>{
@@ -31,7 +34,10 @@ public class FcdTaxiSource implements SourceFunction<FcdTaxiEvent>{
 		this.maxDelayMsecs = maxEventDelaySecs * 1000;
 		this.servingSpeed = servingSpeedFactor;
 	}
-	
+	/**
+	 * Reads txt file
+	 */
+	/*
 	@Override
 	public void run(SourceContext<FcdTaxiEvent> sourceContext) throws Exception {
 	  
@@ -43,8 +49,8 @@ public class FcdTaxiSource implements SourceFunction<FcdTaxiEvent>{
     else {
       inputStream = new FileInputStream(dataFilePath);
     }
-    
-		reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
+		
+    reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
 		
 		generateStream(sourceContext);
 
@@ -54,6 +60,29 @@ public class FcdTaxiSource implements SourceFunction<FcdTaxiEvent>{
 		this.inputStream = null;
 
 	}
+	*/
+	/**
+	 * Reads gzipped files
+	 */
+	@Override
+  public void run(SourceContext<FcdTaxiEvent> sourceContext) throws Exception {
+    
+    if(dataFilePath.startsWith("hdfs:")) {
+      Configuration conf = new Configuration();
+      FileSystem fs = FileSystem.get(URI.create(dataFilePath), conf);
+      inputStream = new GZIPInputStream(new FileInputStream(dataFilePath));
+    }
+    
+    reader = new BufferedReader(new InputStreamReader(inputStream, "UTF-8"));
+    
+    generateStream(sourceContext);
+
+    this.reader.close();
+    this.reader = null;
+    this.inputStream.close();
+    this.inputStream = null;
+
+  }
 	
 	private void generateStream(SourceContext<FcdTaxiEvent> sourceContext) throws Exception {
 		long servingStartTime = Calendar.getInstance().getTimeInMillis();
