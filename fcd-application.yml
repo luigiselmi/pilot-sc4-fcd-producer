@@ -282,7 +282,10 @@ services:
 #            - DOCKER_HOST=tcp://172.26.0.175:2377
 #-----------------------------------------------------------------------------
 
-networks:
-    default:
-        driver: overlay
+#networks:
+#    default:
+#        driver: overlay
 
+networks:
+    pilot-sc4-net:
+      external: true
