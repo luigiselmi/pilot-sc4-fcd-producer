@@ -130,5 +130,37 @@ public class GeoUtils {
 	public static int getCellId(int row, int column, int [][] grid){
 		return grid[row - 1][column - 1];
 	}
+	
+	/**
+	 * Returns the latitude of the centre of the cell.
+	 * The cellId must be equal or less then LON_GRID_LINES * LAT_GRID_LINES
+	 * @param cellId
+	 * @return
+	 */
+	public static double getCellLatitude(int cellId) {
+	  double cellLat = LAT_NORTH ;
+	  // compute the row
+	  int quotient = (int) (cellId / LON_GRID_LINES) ;
+	  int remainder = cellId % LON_GRID_LINES ;
+	  int row = remainder > 0 ? row = quotient + 1 : quotient ;
+	  // compute the latitute of the centre of the cell
+	  cellLat = cellLat - (row - 0.5)*DELTA_LAT ;
+	  return cellLat ;
+	}
+	/**
+	 * Returns the longitude of the centre of the cell.
+   * The cellId must be equal or less then LON_GRID_LINES * LAT_GRID_LINES
+	 * @param cellId
+	 * @return
+	 */
+	public static double getCellLongitude(int cellId) {
+	  double cellLon = LON_WEST ;
+	  // compute the column
+	  int remainder = cellId % LAT_GRID_LINES ;
+	  int col = remainder == 0 ? LAT_GRID_LINES : remainder ;
+	  // compute the longitude of the centre of the cell
+	  cellLon = cellLon + (col - 0.5)*DELTA_LON ;
+	  return cellLon ;
+	}
 
 }

@@ -1,28 +1,34 @@
 package eu.bde.pilot.sc4.fcd;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 /**
- * Pick whether we want to run as producer or consumer. This lets us
+ * Pick whether we want to run the producer or consumer or MapMatch. This lets us
  * have a single executable as a build target.
  */
 public class Main {
     public static void main(String[] args) throws IOException {
         if (args.length < 2) {
-            throw new IllegalArgumentException("Must have either 'producer' or 'consumer' as first argument \n"
-                + "and the path to the gzipped file of GPS records as 2nd argument for a producer. \n");
+            throw new IllegalArgumentException("Must have either 'producer' or 'consumer' or 'mapmatch' as first argument. \n");
         }
         
         try {
 		    switch (args[0]) {
 		        case "producer":
-		            FcdProducer.main(args);
+		            FlinkFcdProducer.main(Arrays.copyOfRange(args, 1, args.length));
 		            break;
-		        case "consumer":
-		            FcdConsumer.main(args);
+		        case "consumer-hdfs":
+		            FlinkFcdConsumerHdfs.main(Arrays.copyOfRange(args, 1, args.length));
 		            break;
+		        case "consumer-elasticsearch":
+		            FlinkFcdConsumerElasticsearch.main(Arrays.copyOfRange(args, 1, args.length));
+		            break;
+		        case "mapmatch":
+                FlinkMapMatch.main(Arrays.copyOfRange(args, 1, args.length));
+                break;
 		        default:
-		            throw new IllegalArgumentException("Don't know how to do " + args[0]);
+		            throw new IllegalArgumentException("Don't know how to handle " + args[0]);
 		    }
         }
         catch(Exception e){

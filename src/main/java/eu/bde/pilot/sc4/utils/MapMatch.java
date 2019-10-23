@@ -31,6 +31,7 @@ public class MapMatch {
   
   
   private final Logger log = LoggerFactory.getLogger(MapMatch.class);
+  public static final String DEVICE_ID = "device_random_id";
   private RConnection conn;
   private String host;
   private int port;
@@ -68,7 +69,7 @@ public class MapMatch {
       
       // transform from a tuples collection to a data frame
       list = RUtil.createRList(events, false);
-      int numOfEvents = list.at(FcdTaxiEvent.DEVICE_ID).length();
+      int numOfEvents = list.at(DEVICE_ID).length();
       log.info("Number of FCD taxi events: " + numOfEvents);
       // Evaluates R commands
       //conn.eval("setwd('" + RSERVE_HOME + "')"); //to be removed, it must be done in the R docker image
@@ -79,7 +80,7 @@ public class MapMatch {
       //conn.voidEval("gdata<-readGpsData(gpsdata)");
       RList matchesList = conn.eval("match(gdata,\"localhost\",5432,\"thessaloniki\",\"postgres\",\"password\")").asList();
       if(matchesList.size() > 0) {
-        int numOfMatches = matchesList.at(FcdTaxiEvent.DEVICE_ID).length();
+        int numOfMatches = matchesList.at(DEVICE_ID).length();
         log.info("Number of matches: " + numOfMatches);
         // transform from a data frame to a tuples collection
         if(numOfMatches > 0) 

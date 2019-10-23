@@ -3,7 +3,19 @@
 # ignore the target folder build by maven from the source code
 target/
 
+# ignore the init-daemon database
+data/database/virtuoso*
+
+# ignore generated http files if any
+data/database/http*
+
+# ignore the hadoop hdfs volumes
+data/hadoop
+
 # ignore the following hidden files and folders
 .classpath
 .project
 .settings/
+
+# ignore the top level tmp/ directory
+tmp/

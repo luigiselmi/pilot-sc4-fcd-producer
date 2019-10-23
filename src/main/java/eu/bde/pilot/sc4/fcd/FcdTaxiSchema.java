@@ -10,12 +10,12 @@ public class FcdTaxiSchema implements DeserializationSchema<FcdTaxiEvent>, Seria
 
 	@Override
 	public byte[] serialize(FcdTaxiEvent element) {
-		return element.toString().getBytes();
+		return element.toBinary();
 	}
 
 	@Override
 	public FcdTaxiEvent deserialize(byte[] message) {
-		return FcdTaxiEvent.fromString(new String(message));
+		return FcdTaxiEvent.fromBinary(message);
 	}
 
 	@Override

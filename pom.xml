@@ -21,17 +21,17 @@ under the License.
 	<modelVersion>4.0.0</modelVersion>
 	
 	<groupId>sc4pilot</groupId>
-	<artifactId>pilot-sc4-fcd-producer</artifactId>
-	<version>0.1</version>
+	<artifactId>pilot-sc4-fcd-applications</artifactId>
+	<version>0.10.0</version>
 	<packaging>jar</packaging>
 
-	<name>Flink Quickstart Job</name>
-	<url>http://www.myorganization.org</url>
+	<name>Flink Floating Car Data Applications</name>
+	<url>https://www.iais.fraunhofer.de/</url>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<flink.version>1.1.2</flink.version>
-		<main.class>eu.bde.pilot.sc4.fcd.FcdProducer</main.class>
+		<flink.version>1.2.0</flink.version>
+		<main.class>eu.bde.pilot.sc4.fcd.Main</main.class>
 	</properties>
 
 	<repositories>
@@ -85,13 +85,13 @@ under the License.
 		</dependency>
 		<dependency>
 			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-clients_2.10</artifactId>
+			<artifactId>flink-clients_2.11</artifactId>
 			<version>${flink.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.flink</groupId>
-			<artifactId>flink-connector-kafka-0.9_2.10</artifactId>
-			<version>1.1.2</version>
+			<artifactId>flink-connector-kafka-0.10_2.10</artifactId>
+			<version>${flink.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>joda-time</groupId>
@@ -124,6 +124,32 @@ under the License.
           <artifactId>gson</artifactId>
           <version>2.6.2</version>
         </dependency>
+        <dependency>
+          <groupId>org.apache.avro</groupId>
+          <artifactId>avro</artifactId>
+          <version>1.8.1</version>
+        </dependency>
+        <dependency>
+          <groupId>com.twitter</groupId>
+          <artifactId>bijection-avro_2.10</artifactId>
+          <version>0.9.2</version>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.flink</groupId>
+          <artifactId>flink-connector-elasticsearch2_2.11</artifactId>
+          <version>1.2.1</version>
+        </dependency>
+        <dependency>
+          <groupId>org.elasticsearch</groupId>
+          <artifactId>elasticsearch</artifactId>
+          <version>2.3.5</version>
+          <scope>compile</scope>
+        </dependency>
+        <dependency>
+          <groupId>org.apache.flink</groupId>
+          <artifactId>flink-connector-filesystem_2.10</artifactId>
+          <version>1.2.0</version>
+        </dependency>
 	</dependencies>
 
 	<profiles>
@@ -152,6 +178,17 @@ under the License.
 					<version>${flink.version}</version>
 					<scope>provided</scope>
 				</dependency>
+				<dependency>
+                   <groupId>org.apache.flink</groupId>
+                   <artifactId>flink-connector-elasticsearch2_2.11</artifactId>
+                   <version>1.2.0</version>
+                </dependency>
+                <dependency>
+                   <groupId>org.elasticsearch</groupId>
+                   <artifactId>elasticsearch</artifactId>
+                   <version>2.3.5</version>
+                   <scope>compile</scope>
+                </dependency>
 			</dependencies>
 
 			<build>
