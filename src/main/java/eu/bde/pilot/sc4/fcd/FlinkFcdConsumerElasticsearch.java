@@ -61,8 +61,8 @@ public class FlinkFcdConsumerElasticsearch {
   private static String KAFKA_TOPIC_PARAM_NAME = "topic";
   private static String KAFKA_TOPIC_PARAM_VALUE = null;
   private static String TIME_WINDOW_PARAM_NAME = "window";
-  private static String HDFS_SINK_PARAM_NAME = "sink";
-  private static String HDFS_SINK_PARAM_VALUE = null;
+  private static String ELASTIC_SINK_PARAM_NAME = "sink";
+  private static String ELASTIC_SINK_PARAM_VALUE = null; //name of the elasticsearch vm in the /etc/hosts file
   private static int TIME_WINDOW_PARAM_VALUE = 0;
   private static final int MAX_EVENT_DELAY = 60; // events are at most 60 sec out-of-order.
   private static final Logger log = LoggerFactory.getLogger(FlinkFcdConsumerElasticsearch.class);
@@ -79,7 +79,7 @@ public class FlinkFcdConsumerElasticsearch {
     
     KAFKA_TOPIC_PARAM_VALUE = parameter.get(KAFKA_TOPIC_PARAM_NAME);
     TIME_WINDOW_PARAM_VALUE = parameter.getInt(TIME_WINDOW_PARAM_NAME, TIME_WINDOW_PARAM_VALUE);
-    HDFS_SINK_PARAM_VALUE = parameter.get(HDFS_SINK_PARAM_NAME);
+    ELASTIC_SINK_PARAM_VALUE = parameter.get(ELASTIC_SINK_PARAM_NAME);
     
     Properties properties = null;
     
@@ -208,10 +208,10 @@ public class FlinkFcdConsumerElasticsearch {
 		// buffered
 		config.put("bulk.flush.max.actions", "1");
 		config.put("cluster.name", "elasticsearch");
-
+    final int ELASTIC_TRANSPORT_PORT = 9300; 
 		List<InetSocketAddress> transports = new ArrayList<InetSocketAddress>();
-		log.info("XXXXX (InetAddress.getByName(elasticsearch), 9300))");
-		transports.add(new InetSocketAddress(InetAddress.getByName("elasticsearch"), 9300));
+		log.info("XXXXX (InetAddress.getByName(ELASTIC_SINK_PARAM_VALUE), ELASTIC_TRANSPORT_PORT))");
+		transports.add(new InetSocketAddress(InetAddress.getByName(ELASTIC_SINK_PARAM_VALUE), ELASTIC_TRANSPORT_PORT));
 
 		inputStream.addSink(new ElasticsearchSink<Tuple5<Integer, Double, Double, Integer, String>>(config, transports,
 				new ElasticsearchSinkFunction<Tuple5<Integer, Double, Double, Integer, String>>() {
