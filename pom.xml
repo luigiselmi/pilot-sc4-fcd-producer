@@ -142,7 +142,7 @@ under the License.
         <dependency>
           <groupId>org.elasticsearch</groupId>
           <artifactId>elasticsearch</artifactId>
-          <version>2.3.5</version>
+          <version>6.8.13</version>
           <scope>compile</scope>
         </dependency>
         <dependency>
@@ -186,7 +186,7 @@ under the License.
                 <dependency>
                    <groupId>org.elasticsearch</groupId>
                    <artifactId>elasticsearch</artifactId>
-                   <version>2.3.5</version>
+                   <version>6.8.13</version>
                    <scope>compile</scope>
                 </dependency>
 			</dependencies>
